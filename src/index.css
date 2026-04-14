@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+
+
+/* Base Styles */
+body {
+  background-color: black;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 1px;
+  height: 1px;
+}
+
