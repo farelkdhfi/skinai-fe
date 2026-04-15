@@ -79,5 +79,7 @@ export const ROUTES = {
 
     INTRO_WEB: '/skinai-introduction',
 
-    GUIDANCE: '/guidance'
+    GUIDANCE: '/guidance',
+
+    SUCCESS: '/success'
 };

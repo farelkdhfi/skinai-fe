@@ -19,6 +19,7 @@ import AboutPage from './pages/AboutPage';
 import PaperPage from './pages/PaperPage';
 import ContactPage from './pages/ContactPage';
 import GuidancePage from './pages/GuidancePage';
+import SuccessPage from './pages/SuccessPage';
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
                 {/* Auth pages */}
                 <Route path={ROUTES.LOGIN} element={<AuthPage />} />
                 <Route path={ROUTES.REGISTER} element={<AuthPage />} />
+                <Route path={ROUTES.SUCCESS} element={<SuccessPage />} />
 
                 {/* Fallback */}
                 <Route path="*" element={<Home />} />
