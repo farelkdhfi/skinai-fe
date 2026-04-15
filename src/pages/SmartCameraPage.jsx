@@ -30,8 +30,8 @@ const ScanOverlay = ({ isActive, validations }) => {
     // Teal/Hijau kalem jika siap, Amber/Orange jika belum
     const strokeColor = isReady 
     ? 'rgba(20, 184, 166, 0.6)' // Teal dengan 60% opacity
-    : 'rgba(245, 158, 11, 0.5)'; // Amber dengan 50% opacity
-    const glowColor = isReady ? 'rgba(20, 184, 166, 0.5)' : 'rgba(245, 158, 11, 0.4)';
+    : 'rgba(255, 255, 255, 0.7)';
+    const glowColor = isReady ? 'rgba(20, 184, 166, 0.5)' : 'rgba(255, 255, 255, 0.2)';
 
     // Definisi titik Hexagon yang proporsional
     const hexPoints = "50,2 95,25 95,75 50,98 5,75 5,25";
