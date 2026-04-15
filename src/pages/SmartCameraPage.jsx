@@ -18,47 +18,74 @@ import {
 
 // --- COMPONENTS: ELEGANT UI ELEMENTS ---
 
-// 1. Futuristic Scan Overlay (Reticle Style)
-const ScanOverlay = ({ isActive }) => {
+// 1. Futuristic Scan Overlay (TRUE HEXAGONAL LENS)
+const ScanOverlay = ({ isActive, validations }) => {
     if (!isActive) return null;
 
+    const isReady = validations?.faceDetected && 
+                    validations?.brightness?.valid && 
+                    validations?.roi?.valid && 
+                    validations?.orientation?.valid;
+    
+    // Teal/Hijau kalem jika siap, Amber/Orange jika belum
+    const strokeColor = isReady 
+    ? 'rgba(20, 184, 166, 0.6)' // Teal dengan 60% opacity
+    : 'rgba(245, 158, 11, 0.5)'; // Amber dengan 50% opacity
+    const glowColor = isReady ? 'rgba(20, 184, 166, 0.5)' : 'rgba(245, 158, 11, 0.4)';
+
+    // Definisi titik Hexagon yang proporsional
+    const hexPoints = "50,2 95,25 95,75 50,98 5,75 5,25";
+
     return (
-        <div className="absolute inset-0 z-20 pointer-events-none p-6 md:p-10 flex items-center justify-center">
-            <div className="absolute inset-0 border-[0.5px] border-white/10 m-4 md:m-6 rounded-[2rem] md:rounded-[3rem] pointer-events-none" />
-            <div className="relative w-full h-full max-w-[85%] max-h-[85%] md:max-w-[80%] md:max-h-[80%]">
-                <div className="absolute top-0 left-0 w-6 h-6 md:w-8 md:h-8 border-l-2 border-t-2 border-white rounded-tl-lg" />
-                <div className="absolute top-0 right-0 w-6 h-6 md:w-8 md:h-8 border-r-2 border-t-2 border-white rounded-tr-lg" />
-                <div className="absolute bottom-0 left-0 w-6 h-6 md:w-8 md:h-8 border-l-2 border-b-2 border-white rounded-bl-lg" />
-                <div className="absolute bottom-0 right-0 w-6 h-6 md:w-8 md:h-8 border-r-2 border-b-2 border-white rounded-br-lg" />
+        <div className="absolute inset-0 z-20 pointer-events-none p-4 md:p-8 flex items-center justify-center">
+            
+            {/* SVG Hexagon Container */}
+            <div className="relative w-full max-w-[85%] aspect-square flex items-center justify-center">
+                <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full overflow-visible drop-shadow-2xl">
+                    <motion.polygon
+                        points={hexPoints}
+                        fill="none"
+                        stroke={strokeColor}
+                        strokeWidth="0.4"
+                        animate={{ 
+                            filter: [`drop-shadow(0 0 5px ${glowColor})`, `drop-shadow(0 0 15px ${glowColor})`, `drop-shadow(0 0 5px ${glowColor})`]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    
+                    {/* Corner accents for the hexagon */}
+                    <polygon points="48,2 52,2 52,4 48,4" fill={strokeColor} />
+                    <polygon points="48,98 52,98 52,96 48,96" fill={strokeColor} />
+                </svg>
 
-                <motion.div
-                    initial={{ top: "0%", opacity: 0 }}
-                    animate={{ top: "100%", opacity: [0, 1, 0] }}
-                    transition={{
-                        duration: 2.5,
-                        repeat: Infinity,
-                        ease: "linear"
-                    }}
-                    className="absolute left-0 right-0 h-[1px] bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)]"
-                />
-
-                <div className="absolute inset-0 flex items-center justify-center opacity-40">
-                    <div className="w-4 h-4 border border-white/50 rounded-full flex items-center justify-center">
-                        <div className="w-0.5 h-0.5 bg-white rounded-full" />
-                    </div>
+                {/* Masking the scanner line inside the hexagon shape */}
+                <div 
+                    className="absolute inset-0 overflow-hidden" 
+                    style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
+                >
+                    <motion.div
+                        initial={{ top: "-10%", opacity: 0 }}
+                        animate={{ top: "110%", opacity: [0, 1, 0] }}
+                        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                        className="absolute left-0 right-0 h-[1.5px] bg-white shadow-[0_0_20px_rgba(255,255,255,1)]"
+                    />
                 </div>
+
+                {/* Titik Fokus Tengah (Soft) */}
+                <div className="w-1 h-1 bg-white/40 rounded-full" />
             </div>
 
+            {/* Indikator Sistem Bawah */}
             <div className="absolute bottom-6 md:bottom-10 left-0 right-0 text-center">
                 <motion.div
                     initial={{ opacity: 0.5 }}
                     animate={{ opacity: 1 }}
                     transition={{ repeat: Infinity, duration: 1.5, repeatType: "reverse" }}
-                    className="inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10"
+                    className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10"
                 >
-                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                    <span className="text-[9px] md:text-[10px] font-medium tracking-[0.2em] text-white uppercase">
-                        System Active
+                    <div className={`w-1.5 h-1.5 rounded-full ${isReady ? 'bg-teal-400' : 'bg-amber-400'} animate-pulse transition-colors duration-500`} />
+                    <span className="text-[9px] md:text-[10px] font-medium tracking-[0.2em] text-white/90 uppercase">
+                        {isReady ? 'System Locked' : 'Scanning'}
                     </span>
                 </motion.div>
             </div>
@@ -66,7 +93,7 @@ const ScanOverlay = ({ isActive }) => {
     );
 };
 
-// 2. Minimalist Status Grid (Monochrome)
+// 2. Minimalist Status Grid (Clean & Elegant)
 const StatusGrid = ({ validations }) => {
     const items = [
         { label: 'LIGHTING', valid: validations.brightness.valid, value: validations.brightness.value, icon: Sun },
@@ -75,38 +102,34 @@ const StatusGrid = ({ validations }) => {
     ];
 
     return (
-        <div className="grid grid-cols-3 gap-2 md:gap-3 w-full">
+        <div className="grid grid-cols-3 gap-2 md:gap-4 w-full">
             {items.map((item, idx) => (
-                <div
-                    key={idx}
-                    className={`
-                        relative flex flex-col items-center justify-center py-3 px-1 md:py-4 md:px-2 rounded-xl border transition-all duration-500
-                        ${item.valid
-                            ? 'bg-zinc-900 border-zinc-900 text-white shadow-lg'
-                            : 'bg-white border-zinc-200 text-zinc-400'
+                <div key={idx} className="flex flex-col items-center justify-center py-2">
+                    <div className={`
+                        p-2.5 md:p-3 rounded-full mb-2 md:mb-3 border transition-all duration-500
+                        ${item.valid 
+                            ? 'bg-teal-50 border-teal-100 shadow-[0_0_15px_rgba(20,184,166,0.15)]' 
+                            : 'bg-zinc-50 border-zinc-200'
                         }
-                    `}
-                >
-                    <div className="flex items-center gap-1 md:gap-1.5 mb-1 md:mb-2">
-                        <item.icon className={`w-3 h-3 md:w-3.5 md:h-3.5 ${item.valid ? 'text-white' : 'text-zinc-300'}`} />
-                        <span className="text-[8px] md:text-[9px] font-bold tracking-widest uppercase truncate">{item.label}</span>
+                    `}>
+                        <item.icon className={`w-4 h-4 md:w-5 md:h-5 transition-colors duration-500 ${item.valid ? 'text-teal-600' : 'text-zinc-400'}`} strokeWidth={1.5} />
                     </div>
-                    <span className={`text-xs md:text-sm font-mono font-medium ${item.valid ? 'text-zinc-200' : 'text-zinc-300'}`}>
+                    <span className="text-[8px] md:text-[9px] font-bold tracking-[0.15em] text-zinc-400 uppercase mb-0.5">
+                        {item.label}
+                    </span>
+                    <span className={`text-xs md:text-sm font-mono tracking-tight transition-colors duration-500 ${item.valid ? 'text-teal-700 font-semibold' : 'text-zinc-400'}`}>
                         {item.valid ? 'OK' : item.value || '--'}
                     </span>
-                    <div className={`absolute top-2 right-2 w-1 h-1 rounded-full ${item.valid ? 'bg-white' : 'bg-zinc-200'}`} />
                 </div>
             ))}
         </div>
     );
 };
 
-// 3. NEW: Elegant Real-time Guidance Overlay
+// 3. Elegant Real-time Guidance Overlay
 const GuidanceOverlay = ({ validations, mode, isAnalyzing, capturedFrame }) => {
-    // Hanya tampil di mode kamera dan jika belum memproses gambar
     if (mode !== 'camera' || isAnalyzing || capturedFrame) return null;
 
-    // Menentukan prioritas instruksi
     let guidance = null;
 
     if (!validations.faceDetected) {
@@ -128,9 +151,9 @@ const GuidanceOverlay = ({ validations, mode, isAnalyzing, capturedFrame }) => {
                     exit={{ opacity: 0, y: -10 }}
                     className="absolute top-6 left-0 right-0 z-30 flex justify-center pointer-events-none"
                 >
-                    <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-zinc-900/80 backdrop-blur-md border border-white/10 shadow-2xl">
-                        <guidance.icon className={`w-3.5 h-3.5 md:w-4 md:h-4 animate-pulse ${guidance.color}`} />
-                        <span className="text-[10px] md:text-xs font-bold tracking-[0.15em] text-white uppercase">
+                    <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 shadow-2xl">
+                        <guidance.icon className={`w-3.5 h-3.5 md:w-4 md:h-4 animate-pulse ${guidance.color}`} strokeWidth={2} />
+                        <span className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] text-white/90 uppercase">
                             {guidance.text}
                         </span>
                     </div>
@@ -170,6 +193,28 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
     const [currentLandmarks, setCurrentLandmarks] = useState(null);
     const [modelLoaded, setModelLoaded] = useState(false);
     const [countdown, setCountdown] = useState(null);
+
+    // DYNAMIC LOADING TEXT STATE
+    const [loadingTextIdx, setLoadingTextIdx] = useState(0);
+    const loadingPhrases = [
+        "Extracting facial features...",
+        "Running texture analysis...",
+        "Generating condition maps...",
+        "Finalizing results..."
+    ];
+
+    useEffect(() => {
+        let interval;
+        if (isAnalyzing) {
+            interval = setInterval(() => {
+                setLoadingTextIdx((prev) => (prev + 1) % loadingPhrases.length);
+            }, 1200);
+        } else {
+            setLoadingTextIdx(0);
+        }
+        return () => clearInterval(interval);
+    }, [isAnalyzing]);
+
 
     const handleBack = useCallback(() => {
         if (requestRef.current) {
@@ -274,8 +319,8 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
             canvasRef.current.height = inputHeight;
             overlayCtx.clearRect(0, 0, inputWidth, inputHeight);
 
-            overlayCtx.lineWidth = 0.8;
-            overlayCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            overlayCtx.lineWidth = 0.4;
+            overlayCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
 
             if (FaceLandmarker.FACE_LANDMARKS_TESSELATION) {
                 for (const connection of FaceLandmarker.FACE_LANDMARKS_TESSELATION) {
@@ -511,9 +556,9 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
 
             {/* --- LEFT: IMMERSIVE VIEWFINDER --- */}
             <div className="relative w-full lg:w-6/12 h-[45vh] lg:h-full bg-black flex items-center justify-center p-0 lg:p-4 overflow-hidden shadow-2xl z-10">
-                <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-zinc-900/50 blur-3xl pointer-events-none" />
+                <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-zinc-900/40 blur-3xl pointer-events-none" />
 
-                <div className="relative w-full aspect-square max-w-[min(100vw,45vh)] lg:max-w-[75vh] lg:rounded-[2rem] overflow-hidden bg-zinc-950 ring-0 lg:ring-1 lg:ring-white/10 mx-auto shadow-2xl flex-shrink-0">
+                <div className="relative w-full aspect-square max-w-[min(100vw,45vh)] lg:max-w-[75vh] lg:rounded-[2.5rem] overflow-hidden bg-zinc-950 ring-0 lg:ring-1 lg:ring-white/10 mx-auto shadow-2xl flex-shrink-0">
                     <div className="absolute inset-0 w-full h-full group">
 
                         {/* Feed */}
@@ -528,7 +573,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                                 <Webcam
                                     ref={webcamRef}
                                     screenshotFormat="image/jpeg"
-                                    className="w-full h-full object-cover scale-x-[-1] brightness-110 contrast-105"
+                                    className="w-full h-full object-cover scale-x-[-1] brightness-105 contrast-105"
                                     videoConstraints={{ width: 720, height: 720, facingMode: "user", aspectRatio: 1 }}
                                 />
                             )
@@ -539,7 +584,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                                 <div className="p-6 md:p-8 rounded-full bg-zinc-800/80 border border-zinc-700/80 border-dashed shadow-inner">
                                     <ImageIcon className="w-8 h-8 md:w-10 md:h-10 text-zinc-500 opacity-80" />
                                 </div>
-                                <p className="text-[10px] md:text-xs font-semibold tracking-widest uppercase text-zinc-500 opacity-80 whitespace-nowrap">
+                                <p className="text-[10px] md:text-xs font-semibold tracking-[0.2em] uppercase text-zinc-500 opacity-80 whitespace-nowrap">
                                     No Image Source
                                 </p>
                             </div>
@@ -549,10 +594,9 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                         <canvas ref={canvasRef} className={`absolute inset-0 w-full h-full pointer-events-none object-cover z-10 ${mode === 'camera' ? 'scale-x-[-1]' : ''}`} />
 
                         {mode === 'camera' && !isAnalyzing && !capturedFrame && modelLoaded && analysisType === 'full' && (
-                            <ScanOverlay isActive={true} />
+                            <ScanOverlay isActive={true} validations={validations} />
                         )}
 
-                        {/* TAMPILKAN GUIDANCE OVERLAY DI SINI */}
                         <GuidanceOverlay
                             validations={validations}
                             mode={mode}
@@ -560,15 +604,33 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                             capturedFrame={capturedFrame}
                         />
 
-                        {/* Loading States */}
-                        {(!modelLoaded || isAnalyzing) && (
-                            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
-                                <Loader2 className="w-10 h-10 text-white animate-spin mb-4" strokeWidth={1} />
-                                <span className="text-xs font-light tracking-[0.3em] text-white uppercase animate-pulse">
-                                    {isAnalyzing ? 'Processing Biometrics' : 'Initializing AI'}
-                                </span>
-                            </div>
-                        )}
+                        {/* LOADING STATES DENGAN DYNAMIC TEXT */}
+                        <AnimatePresence>
+                            {(!modelLoaded || isAnalyzing) && (
+                                <motion.div 
+                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                    className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md"
+                                >
+                                    <Loader2 className="w-8 h-8 md:w-10 md:h-10 text-white/90 animate-spin mb-4 md:mb-5" strokeWidth={1} />
+                                    
+                                    {/* Dynamic Text Container */}
+                                    <div className="h-6 overflow-hidden relative w-full flex justify-center">
+                                        <AnimatePresence mode="wait">
+                                            <motion.span
+                                                key={isAnalyzing ? loadingTextIdx : 'init'}
+                                                initial={{ y: 20, opacity: 0 }}
+                                                animate={{ y: 0, opacity: 1 }}
+                                                exit={{ y: -20, opacity: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                                className="absolute text-[10px] md:text-xs font-light tracking-[0.3em] text-white/90 uppercase text-center"
+                                            >
+                                                {isAnalyzing ? loadingPhrases[loadingTextIdx] : 'Initializing AI'}
+                                            </motion.span>
+                                        </AnimatePresence>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
             </div>
@@ -580,9 +642,9 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                 <div className="p-4 md:p-8 flex justify-between items-start">
                     <button onClick={handleBack} className="group flex items-center gap-2 md:gap-3 text-zinc-400 hover:text-zinc-900 transition-colors">
                         <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-zinc-200 flex items-center justify-center group-hover:bg-zinc-100 transition-all">
-                            <ArrowLeft className="w-4 h-4" />
+                            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1.5} />
                         </div>
-                        <span className="text-xs font-bold tracking-widest uppercase hidden md:block">Exit</span>
+                        <span className="text-[10px] md:text-xs font-bold tracking-widest uppercase hidden md:block mt-0.5">Exit</span>
                     </button>
 
                     <div className="flex gap-2">
@@ -592,15 +654,15 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95, width: 0 }}
-                                    className="flex gap-1 md:gap-2 p-1 bg-zinc-100 rounded-full overflow-hidden"
+                                    className="flex gap-1 md:gap-2 p-1 bg-zinc-100/80 backdrop-blur-sm rounded-full overflow-hidden"
                                 >
                                     {['full', 'patch'].map((t) => (
                                         <button
                                             key={t}
                                             onClick={() => setAnalysisType(t)}
                                             className={`
-                                                px-4 py-1.5 md:px-4 md:py-2 rounded-full text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all duration-300
-                                                ${analysisType === t ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}
+                                                px-4 py-1.5 md:px-5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold tracking-widest uppercase transition-all duration-300
+                                                ${analysisType === t ? 'bg-zinc-900 text-white shadow-md' : 'text-zinc-500 hover:text-zinc-700'}
                                             `}
                                         >
                                             {t}
@@ -610,7 +672,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                             )}
                         </AnimatePresence>
 
-                        <div className="flex gap-1 md:gap-2 p-1 bg-zinc-100 rounded-full z-10">
+                        <div className="flex gap-1 md:gap-2 p-1 bg-zinc-100/80 backdrop-blur-sm rounded-full z-10">
                             {['camera', 'upload'].map((m) => (
                                 <button
                                     key={m}
@@ -621,8 +683,8 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                                         }
                                     }}
                                     className={`
-                                        px-4 py-1.5 md:px-4 md:py-2 rounded-full text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all duration-300
-                                        ${mode === m ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}
+                                        px-4 py-1.5 md:px-5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold tracking-widest uppercase transition-all duration-300
+                                        ${mode === m ? 'bg-white text-zinc-900 shadow-md' : 'text-zinc-500 hover:text-zinc-700'}
                                     `}
                                 >
                                     {m}
@@ -633,30 +695,31 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                 </div>
 
                 {/* Main Content Scrollable */}
-                <div className="flex-1 overflow-y-auto px-4 md:px-8 lg:px-24 pb-8 flex flex-col items-center justify-start lg:justify-center">
+                <div className="flex-1 overflow-y-auto px-6 md:px-8 lg:px-24 pb-8 flex flex-col items-center justify-start lg:justify-center">
 
                     {/* Headers */}
-                    <div className="text-center mb-6 md:mb-12 space-y-2 md:space-y-4 pt-4 lg:pt-0">
-                        <h1 className="text-3xl lg:text-5xl font-semibold tracking-tighter text-zinc-900">
+                    <div className="text-center mb-6 md:mb-8 pt-2 lg:pt-0">
+                        <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium tracking-tight text-zinc-900 mb-2 md:mb-3">
                             {mode === 'camera' ? 'Face Analysis' : 'Upload Source'}
                         </h1>
-                        <p className="text-zinc-500 font-light text-sm md:text-lg max-w-xs mx-auto md:max-w-none">
+                        <p className="text-zinc-400 font-light text-xs md:text-sm tracking-wide max-w-xs mx-auto md:max-w-none">
                             {mode === 'camera'
                                 ? (analysisType === 'full' ? 'Align your face within the frame.' : 'Center the specific skin area.')
                                 : 'Select a high-resolution portrait.'}
                         </p>
                     </div>
 
-                    {/* Dynamic Controls */}
-                    <div className="w-full max-w-sm space-y-6 md:space-y-10">
+                    {/* Dynamic Controls - PERBAIKAN SPACING DI SINI */}
+                    <div className={`flex flex-col items-center w-full max-w-sm md:max-w-md ${mode === 'camera' ? 'gap-6 md:gap-8' : 'gap-5 md:gap-6'}`}>
 
                         {/* 1. Validation Grid */}
                         <AnimatePresence mode="wait">
                             {mode === 'camera' && analysisType === 'full' && (
                                 <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
                                     exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.3 }}
                                     className="w-full"
                                 >
                                     <StatusGrid validations={validations} />
@@ -668,49 +731,51 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                         {mode === 'upload' && (
                             <motion.label
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                                className="block w-full h-24 md:h-32 rounded-2xl border border-dashed border-zinc-300 hover:border-zinc-900 hover:bg-zinc-50 transition-all cursor-pointer flex flex-col items-center justify-center gap-2 md:gap-3 group"
+                                className="block w-full h-32 md:h-40 rounded-3xl border border-dashed border-zinc-300 hover:border-zinc-400 hover:bg-zinc-50/50 transition-all cursor-pointer flex flex-col items-center justify-center gap-3 md:gap-4 group"
                             >
-                                <Upload className="w-5 h-5 md:w-6 md:h-6 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
-                                <span className="text-[10px] md:text-xs font-bold tracking-widest text-zinc-400 group-hover:text-zinc-900 uppercase">Choose File</span>
+                                <div className="p-3 md:p-4 rounded-full bg-zinc-100 group-hover:bg-white group-hover:shadow-sm transition-all">
+                                    <Upload className="w-5 h-5 md:w-6 md:h-6 text-zinc-500 group-hover:text-zinc-900 transition-colors" strokeWidth={1.5} />
+                                </div>
+                                <span className="text-[9px] md:text-[10px] font-bold tracking-[0.15em] text-zinc-400 group-hover:text-zinc-900 uppercase">Choose File</span>
                                 <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                             </motion.label>
                         )}
 
-                        {/* 3. The Shutter Button */}
-                        <div className="flex flex-col items-center pb-safe">
+                        {/* 3. The Premium Shutter Button */}
+                        <div className="flex flex-col items-center pb-safe mt-2 md:mt-4">
                             <button
                                 onClick={handleCapture}
                                 disabled={!canCapture}
                                 className="relative group outline-none"
                             >
                                 {canCapture && (
-                                    <span className="absolute inset-0 rounded-full border border-zinc-900/30 animate-[ping_2s_ease-in-out_infinite]" />
+                                    <span className="absolute inset-[-10px] rounded-full bg-teal-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                 )}
 
                                 <div className={`
-                                    w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center transition-all duration-500
+                                    w-20 h-20 md:w-24 md:h-24 rounded-full p-1.5 flex items-center justify-center transition-all duration-500
                                     ${canCapture
-                                        ? 'bg-zinc-900 shadow-2xl shadow-zinc-900/20 scale-100 hover:scale-105 active:scale-95 cursor-pointer'
-                                        : 'bg-zinc-100 border border-zinc-200 cursor-not-allowed opacity-50'}
+                                        ? 'bg-gradient-to-b from-zinc-200 to-zinc-400 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] scale-100 hover:scale-105 active:scale-95 cursor-pointer'
+                                        : 'bg-zinc-100 border border-zinc-200 cursor-not-allowed opacity-60'}
                                 `}>
-                                    {canCapture ? (
-                                        countdown !== null && countdown > 0 ? (
-                                            <span className="text-3xl md:text-4xl font-light text-white animate-pulse">
-                                                {countdown}
-                                            </span>
+                                    <div className={`w-full h-full rounded-full flex items-center justify-center transition-colors duration-500 ${canCapture ? 'bg-gradient-to-br from-zinc-50 to-zinc-100 shadow-inner border border-white' : 'bg-transparent'}`}>
+                                        {canCapture ? (
+                                            countdown !== null && countdown > 0 ? (
+                                                <span className="text-3xl md:text-4xl font-light text-zinc-800 animate-pulse">
+                                                    {countdown}
+                                                </span>
+                                            ) : (
+                                                <Aperture className="w-7 h-7 md:w-8 md:h-8 text-zinc-700" strokeWidth={1} />
+                                            )
                                         ) : (
-                                            <div className="relative">
-                                                <Aperture className="w-8 h-8 md:w-10 md:h-10 text-white" strokeWidth={1.5} />
-                                            </div>
-                                        )
-                                    ) : (
-                                        <div className="w-3 h-3 rounded-full bg-zinc-300" />
-                                    )}
+                                            <div className="w-3 h-3 rounded-full bg-zinc-300" />
+                                        )}
+                                    </div>
                                 </div>
                             </button>
 
-                            <span className={`mt-4 md:mt-6 text-[9px] md:text-[10px] font-bold tracking-[0.3em] uppercase transition-colors duration-300 ${canCapture ? 'text-zinc-900' : 'text-zinc-300'}`}>
-                                {isAnalyzing ? 'ANALYZING...' : canCapture ? (countdown !== null && countdown > 0 ? 'HOLD STILL' : 'START SCAN') : 'WAITING FOR SIGNAL'}
+                            <span className={`mt-5 md:mt-6 text-[8px] md:text-[9px] font-bold tracking-[0.3em] uppercase transition-colors duration-500 ${canCapture ? 'text-teal-700' : 'text-zinc-300'}`}>
+                                {isAnalyzing ? 'ANALYZING...' : canCapture ? (countdown !== null && countdown > 0 ? 'HOLD STILL' : 'READY TO SCAN') : 'WAITING FOR SIGNAL'}
                             </span>
                         </div>
 
@@ -718,31 +783,31 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                 </div>
             </div>
 
-            {/* Error Modal */}
+            {/* Error Modal (Polished) */}
             <AnimatePresence>
                 {showError && (
                     <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-900/40 backdrop-blur-md p-6"
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-900/60 backdrop-blur-lg p-6"
                         onClick={() => setShowError(false)}
                     >
                         <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                            className="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full text-center shadow-2xl ring-1 ring-zinc-100"
+                            initial={{ scale: 0.95, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }}
+                            className="bg-white rounded-[2rem] p-8 md:p-10 max-w-sm w-full text-center shadow-2xl"
                             onClick={e => e.stopPropagation()}
                         >
-                            <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-zinc-900" />
+                            <div className="w-12 h-12 md:w-14 md:h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-5 border border-amber-100">
+                                <AlertCircle className="w-6 h-6 md:w-7 md:h-7 text-amber-500" strokeWidth={1.5} />
                             </div>
-                            <h3 className="text-lg font-semibold text-zinc-900 mb-2">Detection Failed</h3>
-                            <p className="text-zinc-500 text-xs md:text-sm leading-relaxed mb-6 md:mb-8">
-                                Unable to identify a clear facial structure. Please ensure proper lighting and face alignment.
+                            <h3 className="text-xl font-medium tracking-tight text-zinc-900 mb-3">Detection Failed</h3>
+                            <p className="text-zinc-500 text-sm font-light leading-relaxed mb-8">
+                                Unable to identify a clear facial structure. Please ensure proper lighting and remove any obstructions like glasses or hair.
                             </p>
                             <button
                                 onClick={() => setShowError(false)}
-                                className="w-full py-3 bg-zinc-900 text-white text-xs font-bold tracking-widest uppercase rounded-xl hover:bg-black transition-colors"
+                                className="w-full py-3.5 bg-zinc-900 text-white text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase rounded-2xl hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-900/20"
                             >
-                                Retry
+                                Try Again
                             </button>
                         </motion.div>
                     </motion.div>

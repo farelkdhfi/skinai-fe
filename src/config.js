@@ -1,5 +1,5 @@
 // API Configuration
-export const API_URL = import.meta.env.VITE_API_URL;
+export const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Face Mesh Configuration
 export const FACE_MESH_CONFIG = {
