@@ -1,12 +1,6 @@
-/**
- * Frontend Configuration
- */
-
 // API Configuration
-const currentHost = window.location.hostname;
+export const API_URL = import.meta.env.VITE_API_URL;
 
-export const API_URL = import.meta.env.VITE_API_URL || '/api';
-export const ML_SERVICE_URL = import.meta.env.VITE_ML_URL || 'http://localhost:5000';
 // Face Mesh Configuration
 export const FACE_MESH_CONFIG = {
     maxNumFaces: 1,
@@ -16,7 +10,6 @@ export const FACE_MESH_CONFIG = {
 };
 
 // ROI Points for Face Analysis
-// ROI Points for Face Analysis (Updated to match Python logic)
 export const ROI_POINTS = {
     forehead: { 
         indices: [10, 338, 109, 151], 
