@@ -185,23 +185,33 @@ export default function DashboardPage() {
         setIsDeleting(true);
         try {
             await historyAPI.delete(id);
+        } catch (err) {
+            // Jika error BUKAN 404, tampilkan alert dan hentikan proses
+            if (err.response?.status !== 404) {
+                console.error('Failed to delete analysis:', err);
+                alert('Failed to delete analysis');
+                setIsDeleting(false);
+                return; 
+            }
+            console.warn("Data sudah tidak ada, anggap berhasil");
+        }
 
+        // --- Proses ini akan berjalan jika API sukses ATAU error 404 ---
+        try {
             // Optimistic update
             setRecentAnalyses(prev => prev.filter(item => item.id !== id));
 
-            // Fetch data terbaru
+            // Fetch data terbaru untuk stats
             const response = await dashboardAPI.getStats();
             setStats(response.data.stats);
             if (response.data.recent_analyses) {
                 setRecentAnalyses(response.data.recent_analyses);
             }
 
-            // Tutup modal setelah sukses
+            // Tutup modal setelah semuanya selesai
             setDeleteModal({ isOpen: false, id: null });
         } catch (err) {
-            console.error('Failed to delete analysis:', err);
-            // Bisa diganti pake Toast notification juga kalo lu mau
-            alert('Failed to delete analysis');
+            console.error('Error refreshing dashboard data:', err);
         } finally {
             setIsDeleting(false);
         }

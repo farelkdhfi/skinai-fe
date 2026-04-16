@@ -195,14 +195,21 @@ export default function HistoryListPage() {
         setIsDeleting(true);
         try {
             await historyAPI.delete(id);
-            setAnalyses(prev => prev.filter(item => item.id !== id));
-            setDeleteModal({ isOpen: false, id: null });
         } catch (err) {
-            console.error('Failed to delete analysis:', err);
-            alert('Failed to delete analysis');
-        } finally {
-            setIsDeleting(false);
+            // Cek apakah errornya karena data memang sudah tidak ada (404)
+            if (err.response?.status !== 404) {
+                console.error('Failed to delete analysis:', err);
+                alert('Failed to delete analysis');
+                setIsDeleting(false);
+                return; // Stop eksekusi di sini kalau errornya bukan 404
+            }
+            console.warn("Data sudah tidak ada, anggap berhasil");
         }
+
+        // Baris di bawah ini akan tereksekusi jika sukses API ATAU jika error 404
+        setAnalyses(prev => prev.filter(item => item.id !== id));
+        setDeleteModal({ isOpen: false, id: null });
+        setIsDeleting(false);
     };
 
     // Extract unique categories for filter options
