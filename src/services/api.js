@@ -8,7 +8,7 @@ import { API_URL } from '../config';
 
 const api = axios.create({
     baseURL: API_URL,
-    timeout: 30000,
+    timeout: 60000,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -23,19 +23,30 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Handle token expiry
+// Handle token expiry + auto retry saat timeout
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        // Cek apakah request yang error berasal dari endpoint login
-        const isLoginRequest = error.config && error.config.url && error.config.url.includes('/auth/login');
+    async (error) => {
+        const isLoginRequest = error.config?.url?.includes('/auth/login');
 
-        // Jika error 401 DAN BUKAN dari proses login, baru redirect (karena token expired)
+        // Auto retry kalau timeout (maksimal 2x retry)
+        if (error.code === 'ECONNABORTED') {
+            const retryCount = error.config._retryCount || 0;
+            if (retryCount < 2) {
+                error.config._retryCount = retryCount + 1;
+                console.warn(`⏱️ Timeout, mencoba ulang... (percobaan ${retryCount + 1}/2)`);
+                // Tunggu 1 detik sebelum retry
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                return api(error.config);
+            }
+        }
+
+        // Jika error 401 DAN BUKAN dari proses login, redirect ke login
         if (error.response?.status === 401 && !isLoginRequest) {
             localStorage.removeItem('access_token');
             window.location.href = '/login';
         }
-        
+
         return Promise.reject(error);
     }
 );
