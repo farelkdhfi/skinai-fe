@@ -85,15 +85,22 @@ export default function HistoryDetailPage() {
     // modal delete
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isDeleted, setIsDeleted] = useState(false);
 
     const handleDelete = async () => {
         setIsDeleting(true);
         try {
             await historyAPI.delete(id);
+            setIsDeleted(true);
             navigate(ROUTES.DASHBOARD);
         } catch (err) {
-            console.error('Error deleting scan:', err);
-            alert('Failed to delete scan');
+            if (err.response?.status === 404) {
+                console.warn("Data sudah tidak ada, anggap berhasil");
+                navigate(ROUTES.DASHBOARD);
+            } else {
+                console.error('Error deleting scan:', err);
+                alert('Failed to delete scan');
+            }
         } finally {
             setIsDeleting(false);
             setIsDeleteModalOpen(false);
@@ -116,22 +123,27 @@ export default function HistoryDetailPage() {
         if (id) fetchAnalysis();
 
         // Polling: refresh sampai semua gambar tersedia
-        const interval = setInterval(async () => {
-            try {
-                const response = await historyAPI.getById(id);
-                const data = response.data.analysis;
-                setAnalysis(data);
+        if (!isDeleted) {
+            const interval = setInterval(async () => {
+                try {
+                    const response = await historyAPI.getById(id);
+                    const data = response.data.analysis;
+                    setAnalysis(data);
 
-                // Cek semua gambar sudah ada (main + semua patches)
-                const mainImagesReady = data.image_url && data.heatmap_image_url;
-                const patchImagesReady = data.analysis_patches?.every(
-                    p => p.image_url && p.heatmap_image_url
-                );
-                if (mainImagesReady && patchImagesReady) clearInterval(interval);
-            } catch { }
-        }, 5000);
+                    const mainImagesReady = data.image_url && data.heatmap_image_url;
+                    const patchImagesReady = data.analysis_patches?.every(
+                        p => p.image_url && p.heatmap_image_url
+                    );
+                    if (mainImagesReady && patchImagesReady) clearInterval(interval);
+                } catch (err) {
+                    if (err.response?.status === 404) {
+                        clearInterval(interval); // STOP kalau data hilang
+                    }
+                }
+            }, 5000);
 
-        return () => clearInterval(interval); // cleanup saat unmount
+            return () => clearInterval(interval);
+        }
     }, [id]);
 
     if (loading) {

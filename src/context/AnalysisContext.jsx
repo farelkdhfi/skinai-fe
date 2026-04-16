@@ -52,9 +52,6 @@ export function AnalysisProvider({ children }) {
     const uploadImageToSupabase = async (base64String, userId, token) => {
         if (!base64String) return null;
         try {
-            console.log('Upload mulai, userId:', userId);
-            console.log('SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-            console.log('base64 length:', base64String?.length);
             const supabase = createClient(
                 import.meta.env.VITE_SUPABASE_URL,
                 import.meta.env.VITE_SUPABASE_ANON_KEY,

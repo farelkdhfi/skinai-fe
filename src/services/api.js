@@ -35,7 +35,6 @@ api.interceptors.response.use(
             if (retryCount < 2) {
                 error.config._retryCount = retryCount + 1;
                 console.warn(`⏱️ Timeout, mencoba ulang... (percobaan ${retryCount + 1}/2)`);
-                // Tunggu 1 detik sebelum retry
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 return api(error.config);
             }
@@ -46,18 +45,22 @@ api.interceptors.response.use(
             error.config._retry = true;
             try {
                 await authAPI.refreshToken();
-                // Ulangi request asli dengan token baru
                 const newToken = localStorage.getItem('access_token');
                 error.config.headers.Authorization = `Bearer ${newToken}`;
                 return api(error.config);
             } catch {
-                // Refresh gagal, paksa logout
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
                 window.location.href = '/login';
             }
         }
 
+        // Server error (500 dll)
+        if (error.response?.status >= 500) {
+            console.error('Server error:', error.response?.data);
+        }
+
+        // ✅ WAJIB ADA
         return Promise.reject(error);
     }
 );
