@@ -40,7 +40,7 @@ export default function ResultsPage() {
     // State untuk toggle heatmap
     const [showHeatmap, setShowHeatmap] = useState(true);
 
-    const { user } = useAuth()
+    const { user, session } = useAuth()
 
     // Redirect if no results
     useEffect(() => {
@@ -64,7 +64,7 @@ export default function ResultsPage() {
 
         setIsSaving(true);
         try {
-            const saved = await saveToHistory(user.id);
+            const saved = await saveToHistory(user.id, session?.access_token);
             if (saved) {
                 setIsSaved(true);
                 navigate(ROUTES.DASHBOARD)

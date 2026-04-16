@@ -49,12 +49,22 @@ export function AnalysisProvider({ children }) {
         }
     }, []);
 
-    const uploadImageToSupabase = async (base64String, userId) => {
+    const uploadImageToSupabase = async (base64String, userId, token) => {
         if (!base64String) return null;
         try {
+            console.log('Upload mulai, userId:', userId);
+            console.log('SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+            console.log('base64 length:', base64String?.length);
             const supabase = createClient(
                 import.meta.env.VITE_SUPABASE_URL,
-                import.meta.env.VITE_SUPABASE_ANON_KEY
+                import.meta.env.VITE_SUPABASE_ANON_KEY,
+                {
+                    global: {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                }
             );
 
             const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
@@ -100,23 +110,25 @@ export function AnalysisProvider({ children }) {
         }
     };
 
-    const saveToHistory = useCallback(async (userId) => {
+    const saveToHistory = useCallback(async (userId, token) => {
         if (!results) return;
 
         // Upload semua gambar dulu dari browser langsung ke Supabase
         const mainImageUrl = await uploadImageToSupabase(
             patches['full_image'] || patches['camera_capture'] || null,
-            userId
+            userId,
+            token
         );
         const heatmapUrl = await uploadImageToSupabase(
             results.cfcm_image || null,
-            userId
+            userId,
+            token
         );
 
         const patchesWithUrls = await Promise.all(
             (results.predictions || []).map(async (p) => {
-                const patchUrl = await uploadImageToSupabase(patches[p.region] || null, userId);
-                const heatmapPatchUrl = await uploadImageToSupabase(results.gradcam_heatmaps?.[p.region] || null, userId);
+                const patchUrl = await uploadImageToSupabase(patches[p.region] || null, userId, token);
+                const heatmapPatchUrl = await uploadImageToSupabase(results.gradcam_heatmaps?.[p.region] || null, userId, token);
                 return {
                     region: p.region,
                     predicted_class: p.predicted_class,

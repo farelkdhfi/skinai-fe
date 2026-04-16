@@ -10,6 +10,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
+    const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -20,7 +21,9 @@ export function AuthProvider({ children }) {
             if (token) {
                 try {
                     const response = await authAPI.getMe();
+
                     setUser(response.data.user);
+                    setSession({ access_token: token });
                     setIsAuthenticated(true);
                 } catch {
                     localStorage.removeItem('access_token');
@@ -35,8 +38,15 @@ export function AuthProvider({ children }) {
 
     const login = useCallback(async (email, password) => {
         const response = await authAPI.login(email, password);
+
+        const token = response.data.access_token;
+
+        localStorage.setItem('access_token', token);
+
         setUser(response.data.user);
+        setSession({ access_token: token });
         setIsAuthenticated(true);
+
         return response.data;
     }, []);
 
@@ -50,6 +60,7 @@ export function AuthProvider({ children }) {
             await authAPI.logout();
         } finally {
             setUser(null);
+            setSession(null);
             setIsAuthenticated(false);
             localStorage.removeItem('access_token');
         }
@@ -57,6 +68,7 @@ export function AuthProvider({ children }) {
 
     const value = {
         user,
+        session,
         loading,
         isAuthenticated,
         login,
