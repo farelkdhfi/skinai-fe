@@ -11,15 +11,15 @@ const slides = [
     { type: "step", id: "01", title: "Face Capture", desc: "Image capture with automatic grid guidance.", img: faceAnalysisImg },
     { type: "step", id: "02", title: "Segmentation", desc: "Precise separation of ROI (Region of Interest) areas.", img: processAnalysisImg },
     { type: "step", id: "03", title: "Result & Heatmap", desc: "Final diagnosis with validation of affected areas.", img: resultAnalysisImg },
-    { 
-        type: "cta", 
-        id: "04", 
-        title: "Ready to Analyze?", 
-        desc: "Get precise skin analysis results in seconds. Experience advanced AI technology tailored for your skincare routine." 
+    {
+        type: "cta",
+        id: "04",
+        title: "Ready to Analyze?",
+        desc: "Get precise skin analysis results in seconds. Experience advanced AI technology tailored for your skincare routine."
     }
 ];
 
-const HorizontalProcessSection = () => {
+const HorizontalProcessSection = ({ onStartClick }) => {
     const navigate = useNavigate();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState(0);
@@ -93,26 +93,26 @@ const HorizontalProcessSection = () => {
                         ) : (
                             <div className="w-full h-full flex flex-col justify-center items-start text-left p-8 md:p-16 bg-[#151515] text-white relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                                
+
                                 <div className="relative z-10 w-full">
                                     {/* Mengikuti gaya Badge Hero: font-medium tracking-wide */}
                                     <span className="text-[10px] md:text-xs font-medium tracking-wide text-neutral-500 uppercase mb-4 block">
                                         Final Step
                                     </span>
-                                    
+
                                     {/* Mengikuti gaya Hero Heading: font-medium tracking-tight */}
                                     <h3 className="text-4xl md:text-6xl font-medium tracking-tight mb-4 leading-tight text-neutral-100">
                                         Ready to <br />
                                         <span className="font-serif italic text-neutral-400">Analyze?</span>
                                     </h3>
-                                    
+
                                     {/* Dihapus font-light nya biar lebih solid */}
                                     <p className="text-sm md:text-lg text-neutral-400 mb-8 max-w-sm md:max-w-md leading-relaxed">
                                         {slides[currentIndex].desc}
                                     </p>
-                                    
+
                                     <button
-                                        onClick={() => navigate(ROUTES.INTRO_WEB)}
+                                        onClick={onStartClick}
                                         className="group flex items-center gap-3 px-8 py-3 md:px-10 md:py-4 bg-white text-black rounded-full text-sm md:text-base font-medium transition-all duration-300 hover:bg-neutral-200 active:scale-95"
                                     >
                                         <span>Start Now</span>
@@ -133,9 +133,8 @@ const HorizontalProcessSection = () => {
                             setDirection(index > currentIndex ? 1 : -1);
                             setCurrentIndex(index);
                         }}
-                        className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
-                            currentIndex === index ? "w-10 bg-neutral-800" : "w-2 bg-neutral-300 hover:bg-neutral-400"
-                        }`}
+                        className={`h-1.5 rounded-full transition-all duration-500 ease-out ${currentIndex === index ? "w-10 bg-neutral-800" : "w-2 bg-neutral-300 hover:bg-neutral-400"
+                            }`}
                         aria-label={`Go to slide ${index + 1}`}
                     />
                 ))}

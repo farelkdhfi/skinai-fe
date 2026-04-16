@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
@@ -13,35 +13,35 @@ import { ROUTES } from '../config';
 const DualBubbleMesh = () => {
     const bubble1Ref = useRef();
     const bubble2Ref = useRef();
-    
+
     useFrame((state) => {
         const t = state.clock.elapsedTime;
         if (bubble1Ref.current) {
             bubble1Ref.current.rotation.x = t * 0.1;
             bubble1Ref.current.rotation.y = t * 0.15;
-            bubble1Ref.current.position.y = Math.sin(t * 0.5) * 0.2; 
+            bubble1Ref.current.position.y = Math.sin(t * 0.5) * 0.2;
         }
         if (bubble2Ref.current) {
             bubble2Ref.current.rotation.x = -t * 0.12;
             bubble2Ref.current.rotation.y = t * 0.1;
-            bubble2Ref.current.position.y = Math.cos(t * 0.4) * 0.3 - 0.5; 
+            bubble2Ref.current.position.y = Math.cos(t * 0.4) * 0.3 - 0.5;
         }
     });
 
     return (
         <Float speed={2} rotationIntensity={1} floatIntensity={1.5}>
             <Sphere ref={bubble1Ref} args={[2.2, 64, 64]} position={[-0.4, 0, 0]}>
-                <MeshDistortMaterial 
-                    color="#000000" speed={3} distort={0.4} radius={1} 
-                    roughness={0.05} metalness={0.8} clearcoat={1} 
-                    clearcoatRoughness={0.1} transparent={true} opacity={0.85}       
+                <MeshDistortMaterial
+                    color="#000000" speed={3} distort={0.4} radius={1}
+                    roughness={0.05} metalness={0.8} clearcoat={1}
+                    clearcoatRoughness={0.1} transparent={true} opacity={0.85}
                 />
             </Sphere>
             <Sphere ref={bubble2Ref} args={[1.6, 64, 64]} position={[1.2, -0.5, -0.8]}>
-                <MeshDistortMaterial 
-                    color="#ffffff" speed={4} distort={0.5} radius={1} 
-                    roughness={0.05} metalness={0.1} clearcoat={1} 
-                    clearcoatRoughness={0.1} transparent={true} opacity={0.5}        
+                <MeshDistortMaterial
+                    color="#ffffff" speed={4} distort={0.5} radius={1}
+                    roughness={0.05} metalness={0.1} clearcoat={1}
+                    clearcoatRoughness={0.1} transparent={true} opacity={0.5}
                 />
             </Sphere>
             <Environment preset="city" />
@@ -52,7 +52,7 @@ const DualBubbleMesh = () => {
 // --- 2. Animation Variants ---
 const formContainerVariants = {
     hidden: { opacity: 0, x: 20 },
-    visible: { 
+    visible: {
         opacity: 1, x: 0,
         transition: { duration: 0.6, ease: "easeOut", staggerChildren: 0.1 }
     }
@@ -77,13 +77,17 @@ export default function AuthPage() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    if (isAuthenticated) {
-        navigate(ROUTES.DASHBOARD);
-        return null;
-    }
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate(ROUTES.DASHBOARD);
+        }
+    }, [isAuthenticated, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (loading) return;
+
         setError('');
         setSuccess('');
 
@@ -118,18 +122,22 @@ export default function AuthPage() {
             }
         } catch (err) {
             console.error("API Error:", err);
-            
-            // Mengubah default error menjadi bahasa Inggris yang profesional
+
+            if (!err.response) {
+                setError('Network error. Please check your connection or try again.');
+                return;
+            }
+
             const errorMessage = err.response?.data?.error || err.message || 'An unexpected error occurred. Please try again later.';
             const errLower = errorMessage.toLowerCase();
 
             // Lakukan pencocokan string dari error bawaan Supabase
             if (errLower.includes('invalid login credentials')) {
                 setError('Incorrect credentials. Please verify your email and password.');
-            } 
+            }
             else if (errLower.includes('already registered')) {
                 setError('This email address is already registered. Please sign in instead.');
-            } 
+            }
             else if (errLower.includes('not found') || errLower.includes('invalid user') || errLower.includes('user not found')) {
                 setError('No account found with this email address. Please create an account.');
             }
@@ -171,14 +179,14 @@ export default function AuthPage() {
 
             {/* --- KANAN: Form Login --- */}
             <div className="w-full lg:w-[50%] h-[72dvh] lg:h-full flex flex-col justify-center items-center p-4 sm:p-6 lg:p-10 relative bg-white shrink-0 overflow-hidden">
-                <motion.div 
+                <motion.div
                     className="w-full max-w-[320px] sm:max-w-sm"
                     variants={formContainerVariants}
                     initial="hidden"
                     animate="visible"
                 >
                     <motion.div variants={itemVariants} className="mb-4 lg:mb-8">
-                         <Link to={ROUTES.HOME} className="inline-flex items-center text-[11px] lg:text-sm text-zinc-400 hover:text-zinc-900 transition-colors mb-3 lg:mb-6 group">
+                        <Link to={ROUTES.HOME} className="inline-flex items-center text-[11px] lg:text-sm text-zinc-400 hover:text-zinc-900 transition-colors mb-3 lg:mb-6 group">
                             <ArrowLeft className="w-3 h-3 lg:w-4 lg:h-4 mr-1.5 group-hover:-translate-x-1 transition-transform" />
                             Back to Home
                         </Link>
@@ -186,8 +194,8 @@ export default function AuthPage() {
                             {mode === 'login' ? 'Welcome back' : 'Create account'}
                         </h1>
                         <p className="text-xs lg:text-base text-zinc-500 font-light">
-                            {mode === 'login' 
-                                ? 'Enter your credentials to access your dashboard.' 
+                            {mode === 'login'
+                                ? 'Enter your credentials to access your dashboard.'
                                 : 'Start your journey to better skin health today.'}
                         </p>
                     </motion.div>
@@ -257,6 +265,7 @@ export default function AuthPage() {
                                         placeholder="name@example.com"
                                         className="w-full pl-9 lg:pl-11 pr-3 py-2 lg:py-3 text-xs lg:text-sm bg-zinc-50 border border-zinc-200 rounded-lg lg:rounded-xl focus:bg-white focus:border-zinc-900 focus:ring-0 outline-none transition-all text-zinc-900 placeholder:text-zinc-400"
                                         required
+                                        disabled={loading}
                                     />
                                 </div>
                             </div>
@@ -279,6 +288,7 @@ export default function AuthPage() {
                                         placeholder="••••••••"
                                         className="w-full pl-9 lg:pl-11 pr-3 py-2 lg:py-3 text-xs lg:text-sm bg-zinc-50 border border-zinc-200 rounded-lg lg:rounded-xl focus:bg-white focus:border-zinc-900 focus:ring-0 outline-none transition-all text-zinc-900 placeholder:text-zinc-400"
                                         required
+                                        disabled={loading}
                                     />
                                 </div>
                             </div>
@@ -303,6 +313,7 @@ export default function AuthPage() {
                                                 placeholder="••••••••"
                                                 className="w-full pl-9 lg:pl-11 pr-3 py-2 lg:py-3 text-xs lg:text-sm bg-zinc-50 border border-zinc-200 rounded-lg lg:rounded-xl focus:bg-white focus:border-zinc-900 focus:ring-0 outline-none transition-all text-zinc-900 placeholder:text-zinc-400"
                                                 required
+                                                disabled={loading}
                                             />
                                         </div>
                                     </motion.div>
@@ -327,7 +338,7 @@ export default function AuthPage() {
                     </form>
                 </motion.div>
 
-                <motion.div 
+                <motion.div
                     variants={itemVariants}
                     initial="hidden"
                     animate="visible"

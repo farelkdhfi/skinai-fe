@@ -156,6 +156,103 @@ const StatCard = ({ icon: Icon, label, value, trend, highlight }) => (
     </div>
 );
 
+// 3. Skeleton Loading Component
+const DashboardSkeleton = () => (
+    <div className="w-full animate-pulse">
+        {/* Bento Grid Stats Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-8">
+            {/* Highlight Card Skeleton */}
+            <div className="h-[140px] sm:h-[200px] md:h-[240px] p-4 sm:p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] bg-[#1A1A1A]/80 border border-[#333] flex flex-col justify-between">
+                <div className="flex justify-between items-start">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-white/10 rounded-xl md:rounded-2xl" />
+                    <div className="w-4 h-4 md:w-5 md:h-5 bg-white/10 rounded" />
+                </div>
+                <div>
+                    <div className="h-8 md:h-12 w-16 md:w-24 bg-white/10 rounded-lg mb-2" />
+                    <div className="h-2.5 md:h-3 w-12 md:w-16 bg-white/10 rounded mb-1.5" />
+                    <div className="h-2 md:h-2.5 w-10 md:w-12 bg-white/10 rounded" />
+                </div>
+            </div>
+
+            {/* Normal Card Skeletons */}
+            {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-[140px] sm:h-[200px] md:h-[240px] p-4 sm:p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] bg-white/60 border border-white/40 flex flex-col justify-between">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-200/60 rounded-xl md:rounded-2xl" />
+                    <div>
+                        <div className="h-8 md:h-12 w-16 md:w-24 bg-zinc-200/60 rounded-lg mb-2" />
+                        <div className="h-2.5 md:h-3 w-12 md:w-16 bg-zinc-200/60 rounded mb-1.5" />
+                        <div className="h-2 md:h-2.5 w-10 md:w-12 bg-zinc-200/60 rounded" />
+                    </div>
+                </div>
+            ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+            {/* Timeline Chart Skeleton */}
+            <div className="lg:col-span-2 bg-white/60 border border-white/40 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 h-[260px] sm:h-[300px] md:h-[400px] flex flex-col">
+                <div className="flex justify-between items-start mb-6">
+                    <div>
+                        <div className="h-5 md:h-6 w-32 bg-zinc-200/60 rounded mb-2" />
+                        <div className="h-3 md:h-4 w-48 bg-zinc-200/60 rounded" />
+                    </div>
+                    <div className="w-5 h-5 md:w-6 md:h-6 bg-zinc-200/60 rounded-full" />
+                </div>
+                <div className="flex-1 w-full bg-zinc-200/40 rounded-xl" />
+            </div>
+
+            {/* Distribution Chart Skeleton */}
+            <div className="lg:col-span-1 bg-white/60 border border-white/40 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 h-[320px] sm:h-[300px] md:h-[400px] flex flex-col">
+                <div className="h-5 md:h-6 w-32 bg-zinc-200/60 rounded mb-2" />
+                <div className="h-3 md:h-4 w-24 bg-zinc-200/60 rounded mb-6" />
+                <div className="flex-1 relative flex items-center justify-center mb-6">
+                    <div className="w-32 h-32 md:w-40 md:h-40 bg-zinc-200/60 rounded-full" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <div className="h-6 md:h-8 w-12 bg-white/60 rounded mb-1" />
+                        <div className="h-2 w-8 bg-white/60 rounded" />
+                    </div>
+                </div>
+                <div className="space-y-2 md:space-y-3">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-zinc-200/60" />
+                                <div className="h-3 w-16 bg-zinc-200/60 rounded" />
+                            </div>
+                            <div className="h-3 w-8 bg-zinc-200/60 rounded" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+
+        {/* History List Skeleton */}
+        <div className="w-full bg-white/80 border border-white/60 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden">
+            <div className="p-5 md:p-8 border-b border-zinc-100 flex items-center justify-between">
+                <div className="h-5 md:h-6 w-40 bg-zinc-200/60 rounded" />
+                <div className="h-4 w-24 md:w-32 bg-zinc-200/60 rounded" />
+            </div>
+            <div className="divide-y divide-zinc-100">
+                {[...Array(4)].map((_, i) => (
+                    <div key={i} className="p-3 sm:p-4 md:p-6 lg:p-8 flex items-center justify-between">
+                        <div className="flex items-center gap-3 md:gap-6">
+                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-zinc-200/60 shrink-0" />
+                            <div>
+                                <div className="h-4 md:h-5 w-24 md:w-32 bg-zinc-200/60 rounded mb-1.5 md:mb-2" />
+                                <div className="h-2 md:h-3 w-32 md:w-40 bg-zinc-200/60 rounded" />
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <div className="h-5 md:h-7 w-12 md:w-16 bg-zinc-200/60 rounded mb-1.5 ml-auto" />
+                            <div className="h-2 md:h-2.5 w-16 md:w-20 bg-zinc-200/60 rounded ml-auto hidden sm:block" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
 // --- MAIN PAGE ---
 
 export default function DashboardPage() {
@@ -309,187 +406,193 @@ export default function DashboardPage() {
                     </motion.div>
                 </div>
 
-                {!isAuthenticated && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl p-4 md:p-6 mb-8 md:mb-12 flex items-center gap-4 shadow-sm"
-                    >
-                        <div className="p-2 md:p-3 bg-white rounded-full shadow-sm shrink-0">
-                            <Activity className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" />
-                        </div>
-                        <p className="text-zinc-600 text-sm md:text-base">
-                            <Link to={ROUTES.LOGIN} className="font-bold text-zinc-900 hover:underline">{t('login')}</Link> to save your progress and access detailed history.
-                        </p>
-                    </motion.div>
-                )}
-
-                {/* --- BENTO GRID STATS --- */}
-                {/* Diubah menjadi grid-cols-2 untuk mobile agar lebih padat */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-8">
-                    <TiltCard className="col-span-1 h-[140px] sm:h-[200px] md:h-[240px]">
-                        <StatCard
-                            icon={BarChart3}
-                            label={t('stats_total')}
-                            value={displayStats.total_analyses}
-                            trend="Lifetime Scans"
-                            highlight={true}
-                        />
-                    </TiltCard>
-
-                    <TiltCard className="col-span-1 h-[140px] sm:h-[200px] md:h-[240px]">
-                        <StatCard
-                            icon={Target}
-                            label={t('stats_frequent')}
-                            value={displayStats.most_frequent_condition || '-'}
-                            trend="Dominant Condition"
-                        />
-                    </TiltCard>
-
-                    <TiltCard className="col-span-1 h-[140px] sm:h-[200px] md:h-[240px]">
-                        <StatCard
-                            icon={ScanLine}
-                            label={t('stats_confidence')}
-                            value={`${(displayStats.average_confidence * 100).toFixed(0)}%`}
-                            trend="AI Precision Score"
-                        />
-                    </TiltCard>
-
-                    <TiltCard className="col-span-1 h-[140px] sm:h-[200px] md:h-[240px]">
-                        <StatCard
-                            icon={TrendingUp}
-                            label={t('stats_improvement')}
-                            value={displayStats.improvement_percentage ? `+${displayStats.improvement_percentage}%` : '-'}
-                            trend="Health Index"
-                        />
-                    </TiltCard>
-                </div>
-
-                {/* --- CHARTS SECTION --- */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-
-                    {/* Timeline Chart */}
-                    <TiltCard className="lg:col-span-2" noHover={true}>
-                        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 h-[260px] sm:h-[300px] md:h-[400px] shadow-sm flex flex-col">
-                            <div className="flex justify-between items-start mb-4 md:mb-6">
-                                <div>
-                                    <h3 className="text-lg md:text-xl font-medium text-zinc-900">{t('chart_timeline')}</h3>
-                                    <p className="text-xs md:text-sm text-zinc-400">Analysis frequency over time</p>
+                {loading ? (
+                    <DashboardSkeleton />
+                ) : (
+                    <>
+                        {!isAuthenticated && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl p-4 md:p-6 mb-8 md:mb-12 flex items-center gap-4 shadow-sm"
+                            >
+                                <div className="p-2 md:p-3 bg-white rounded-full shadow-sm shrink-0">
+                                    <Activity className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" />
                                 </div>
-                                <Calendar className="text-zinc-300 w-5 h-5 md:w-6 md:h-6" />
-                            </div>
+                                <p className="text-zinc-600 text-sm md:text-base">
+                                    <Link to={ROUTES.LOGIN} className="font-bold text-zinc-900 hover:underline">{t('login')}</Link> to save your progress and access detailed history.
+                                </p>
+                            </motion.div>
+                        )}
 
-                            <div className="flex-1 w-full -ml-2">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={displayTrend}>
-                                        <defs>
-                                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
-                                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" strokeOpacity={0.5} />
-                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#a1a1aa', fontSize: 10 }} dy={10} />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#a1a1aa', fontSize: 10 }} />
-                                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '5 5' }} />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="value"
-                                            stroke="#6366f1"
-                                            strokeWidth={3}
-                                            fillOpacity={1}
-                                            fill="url(#colorValue)"
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
+                        {/* --- BENTO GRID STATS --- */}
+                        {/* Diubah menjadi grid-cols-2 untuk mobile agar lebih padat */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-8">
+                            <TiltCard className="col-span-1 h-[140px] sm:h-[200px] md:h-[240px]">
+                                <StatCard
+                                    icon={BarChart3}
+                                    label={t('stats_total')}
+                                    value={displayStats.total_analyses}
+                                    trend="Lifetime Scans"
+                                    highlight={true}
+                                />
+                            </TiltCard>
+
+                            <TiltCard className="col-span-1 h-[140px] sm:h-[200px] md:h-[240px]">
+                                <StatCard
+                                    icon={Target}
+                                    label={t('stats_frequent')}
+                                    value={displayStats.most_frequent_condition || '-'}
+                                    trend="Dominant Condition"
+                                />
+                            </TiltCard>
+
+                            <TiltCard className="col-span-1 h-[140px] sm:h-[200px] md:h-[240px]">
+                                <StatCard
+                                    icon={ScanLine}
+                                    label={t('stats_confidence')}
+                                    value={`${(displayStats.average_confidence * 100).toFixed(0)}%`}
+                                    trend="AI Precision Score"
+                                />
+                            </TiltCard>
+
+                            <TiltCard className="col-span-1 h-[140px] sm:h-[200px] md:h-[240px]">
+                                <StatCard
+                                    icon={TrendingUp}
+                                    label={t('stats_improvement')}
+                                    value={displayStats.improvement_percentage ? `+${displayStats.improvement_percentage}%` : '-'}
+                                    trend="Health Index"
+                                />
+                            </TiltCard>
                         </div>
-                    </TiltCard>
 
-                    {/* Distribution Chart */}
-                    <TiltCard className="lg:col-span-1" noHover={true}>
-                        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 h-[320px] sm:h-[300px] md:h-[400px] shadow-sm flex flex-col relative overflow-hidden">
-                            <h3 className="text-lg md:text-xl font-medium text-zinc-900 mb-1">{t('chart_distribution')}</h3>
-                            <p className="text-xs md:text-sm text-zinc-400 mb-2 md:mb-4">Condition Ratio</p>
+                        {/* --- CHARTS SECTION --- */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
 
-                            <div className="flex-1 relative">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={displayDistribution}
-                                            cx="50%" cy="50%"
-                                            innerRadius={50} outerRadius={70}
-                                            dataKey="value"
-                                            paddingAngle={5}
-                                            stroke="none"
-                                            cornerRadius={8}
-                                        >
-                                            {displayDistribution.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={DIAGNOSIS_COLORS[entry.name]?.hex || '#e4e4e7'} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip content={<CustomTooltip />} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-
-                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <span className="text-2xl sm:text-3xl md:text-4xl font-light text-zinc-900">{displayStats.total_analyses}</span>
-                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Total</span>
-                                </div>
-                            </div>
-
-                            <div className="mt-2 md:mt-4 space-y-1 md:space-y-2 overflow-y-auto max-h-[80px] md:max-h-none">
-                                {displayDistribution.map((entry, index) => (
-                                    <div key={index} className="flex items-center justify-between text-xs md:text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: DIAGNOSIS_COLORS[entry.name]?.hex || '#e4e4e7' }} />
-                                            <span className="text-zinc-600 truncate max-w-[100px]">{entry.name}</span>
+                            {/* Timeline Chart */}
+                            <TiltCard className="lg:col-span-2" noHover={true}>
+                                <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 h-[260px] sm:h-[300px] md:h-[400px] shadow-sm flex flex-col">
+                                    <div className="flex justify-between items-start mb-4 md:mb-6">
+                                        <div>
+                                            <h3 className="text-lg md:text-xl font-medium text-zinc-900">{t('chart_timeline')}</h3>
+                                            <p className="text-xs md:text-sm text-zinc-400">Analysis frequency over time</p>
                                         </div>
-                                        <span className="font-mono text-zinc-400">
-                                            {hasData ? `${((entry.value / displayStats.total_analyses) * 100).toFixed(0)}%` : '-'}
-                                        </span>
+                                        <Calendar className="text-zinc-300 w-5 h-5 md:w-6 md:h-6" />
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    </TiltCard>
-                </div>
 
-                {/* --- RECENT HISTORY LIST --- */}
-                <TiltCard className="w-full" noHover={true}>
-                    <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-sm">
-                        <div className="p-5 md:p-8 border-b border-zinc-100 flex items-center justify-between bg-white/50">
-                            <div>
-                                <h3 className="font-medium text-lg md:text-xl text-zinc-900 flex items-center gap-2">
-                                    Recent Analysis
-                                </h3>
-                            </div>
-                            <Link to={ROUTES.HISTORY_LIST || '#'} className="group flex items-center gap-1 md:gap-2 text-xs md:text-sm font-medium text-zinc-500 hover:text-indigo-600 transition-colors">
-                                <span className="hidden sm:inline">View Full History</span>
-                                <span className="sm:hidden">View All</span>
-                                <span className="p-1 rounded-full bg-zinc-100 group-hover:bg-indigo-100 transition-colors">
-                                    <ArrowRight size={12} className="md:w-3.5 md:h-3.5" />
-                                </span>
-                            </Link>
-                        </div>
-
-                        <div className="divide-y divide-zinc-100">
-                            {hasData ? (
-                                recentAnalyses.map((analysis, i) => (
-                                    <HistoryRow key={i} analysis={analysis} onDelete={promptDelete} t={t} />
-                                ))
-                            ) : (
-                                <div className="py-16 md:py-24 text-center px-4">
-                                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-zinc-50 to-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-inner">
-                                        <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-zinc-300" />
+                                    <div className="flex-1 w-full -ml-2">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={displayTrend}>
+                                                <defs>
+                                                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
+                                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" strokeOpacity={0.5} />
+                                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#a1a1aa', fontSize: 10 }} dy={10} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#a1a1aa', fontSize: 10 }} />
+                                                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '5 5' }} />
+                                                <Area
+                                                    type="monotone"
+                                                    dataKey="value"
+                                                    stroke="#6366f1"
+                                                    strokeWidth={3}
+                                                    fillOpacity={1}
+                                                    fill="url(#colorValue)"
+                                                />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
                                     </div>
-                                    <p className="text-lg md:text-xl text-zinc-900 font-medium mb-2">No analyses yet</p>
-                                    <p className="text-sm md:text-base text-zinc-400">Start your journey to better skin health today.</p>
                                 </div>
-                            )}
+                            </TiltCard>
+
+                            {/* Distribution Chart */}
+                            <TiltCard className="lg:col-span-1" noHover={true}>
+                                <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 h-[320px] sm:h-[300px] md:h-[400px] shadow-sm flex flex-col relative overflow-hidden">
+                                    <h3 className="text-lg md:text-xl font-medium text-zinc-900 mb-1">{t('chart_distribution')}</h3>
+                                    <p className="text-xs md:text-sm text-zinc-400 mb-2 md:mb-4">Condition Ratio</p>
+
+                                    <div className="flex-1 relative">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={displayDistribution}
+                                                    cx="50%" cy="50%"
+                                                    innerRadius={50} outerRadius={70}
+                                                    dataKey="value"
+                                                    paddingAngle={5}
+                                                    stroke="none"
+                                                    cornerRadius={8}
+                                                >
+                                                    {displayDistribution.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={DIAGNOSIS_COLORS[entry.name]?.hex || '#e4e4e7'} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip content={<CustomTooltip />} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                            <span className="text-2xl sm:text-3xl md:text-4xl font-light text-zinc-900">{displayStats.total_analyses}</span>
+                                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Total</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-2 md:mt-4 space-y-1 md:space-y-2 overflow-y-auto max-h-[80px] md:max-h-none">
+                                        {displayDistribution.map((entry, index) => (
+                                            <div key={index} className="flex items-center justify-between text-xs md:text-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: DIAGNOSIS_COLORS[entry.name]?.hex || '#e4e4e7' }} />
+                                                    <span className="text-zinc-600 truncate max-w-[100px]">{entry.name}</span>
+                                                </div>
+                                                <span className="font-mono text-zinc-400">
+                                                    {hasData ? `${((entry.value / displayStats.total_analyses) * 100).toFixed(0)}%` : '-'}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </TiltCard>
                         </div>
-                    </div>
-                </TiltCard>
+
+                        {/* --- RECENT HISTORY LIST --- */}
+                        <TiltCard className="w-full" noHover={true}>
+                            <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-sm">
+                                <div className="p-5 md:p-8 border-b border-zinc-100 flex items-center justify-between bg-white/50">
+                                    <div>
+                                        <h3 className="font-medium text-lg md:text-xl text-zinc-900 flex items-center gap-2">
+                                            Recent Analysis
+                                        </h3>
+                                    </div>
+                                    <Link to={ROUTES.HISTORY_LIST || '#'} className="group flex items-center gap-1 md:gap-2 text-xs md:text-sm font-medium text-zinc-500 hover:text-indigo-600 transition-colors">
+                                        <span className="hidden sm:inline">View Full History</span>
+                                        <span className="sm:hidden">View All</span>
+                                        <span className="p-1 rounded-full bg-zinc-100 group-hover:bg-indigo-100 transition-colors">
+                                            <ArrowRight size={12} className="md:w-3.5 md:h-3.5" />
+                                        </span>
+                                    </Link>
+                                </div>
+
+                                <div className="divide-y divide-zinc-100">
+                                    {hasData ? (
+                                        recentAnalyses.map((analysis, i) => (
+                                            <HistoryRow key={i} analysis={analysis} onDelete={promptDelete} t={t} />
+                                        ))
+                                    ) : (
+                                        <div className="py-16 md:py-24 text-center px-4">
+                                            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-zinc-50 to-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-inner">
+                                                <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-zinc-300" />
+                                            </div>
+                                            <p className="text-lg md:text-xl text-zinc-900 font-medium mb-2">No analyses yet</p>
+                                            <p className="text-sm md:text-base text-zinc-400">Start your journey to better skin health today.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </TiltCard>
+                    </>
+                )}
 
                 <ConfirmModal
                     isOpen={deleteModal.isOpen}

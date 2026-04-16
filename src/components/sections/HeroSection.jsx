@@ -12,7 +12,7 @@ import { ROUTES } from '../../config';
 import HeroImg from '../../assets/fullface.png';
 import ParallaxImage from '../ui/ParallaxImage';
 
-const HeroSection = () => {
+const HeroSection = ({ onStartClick }) => {
     return (
         <section className="relative w-full flex flex-col items-center px-4 sm:px-6 pb-12 md:pb-20 pt-6 md:pt-0">
             {/* Sticky Wrapper: Adjusted top position for mobile to prevent header overlap */}
@@ -57,13 +57,13 @@ const HeroSection = () => {
                     transition={{ duration: 0.5, delay: 0.6 }}
                     className="pt-2 md:pt-0"
                 >
-                    <Link to={ROUTES?.INTRO_WEB || '#'} className="group relative inline-flex h-12 md:h-14 items-center justify-center overflow-hidden rounded-full bg-[#111] px-6 md:px-8 font-medium text-neutral-50 transition-all hover:bg-neutral-800 w-44 md:w-48 hover:w-48 md:hover:w-52">
+                    <button onClick={onStartClick} className="group relative inline-flex h-12 md:h-14 items-center justify-center overflow-hidden rounded-full bg-[#111] px-6 md:px-8 font-medium text-neutral-50 transition-all hover:bg-neutral-800 w-44 md:w-48 hover:w-48 md:hover:w-52">
                         <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
                             <div className="relative h-full w-8 bg-white/20" />
                         </div>
                         <span className="mr-2 text-sm md:text-base">Mulai Analisis</span>
                         <ArrowRight size={18} className='group-hover:translate-x-1 transition-transform' />
-                    </Link>
+                    </button>
                 </motion.div>
             </div>
 
