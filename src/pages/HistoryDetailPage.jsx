@@ -114,6 +114,24 @@ export default function HistoryDetailPage() {
         };
 
         if (id) fetchAnalysis();
+
+        // Polling: refresh sampai semua gambar tersedia
+        const interval = setInterval(async () => {
+            try {
+                const response = await historyAPI.getById(id);
+                const data = response.data.analysis;
+                setAnalysis(data);
+
+                // Cek semua gambar sudah ada (main + semua patches)
+                const mainImagesReady = data.image_url && data.heatmap_image_url;
+                const patchImagesReady = data.analysis_patches?.every(
+                    p => p.image_url && p.heatmap_image_url
+                );
+                if (mainImagesReady && patchImagesReady) clearInterval(interval);
+            } catch { }
+        }, 5000);
+
+        return () => clearInterval(interval); // cleanup saat unmount
     }, [id]);
 
     if (loading) {

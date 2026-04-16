@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { 
-    ArrowLeft, Calendar, Trash2, 
+import {
+    ArrowLeft, Calendar, Trash2,
     ChevronRight, AlertTriangle, X, Loader2, Sparkles, ScanLine,
     Filter, CalendarDays, ChevronDown
 } from 'lucide-react';
@@ -62,7 +62,7 @@ function HistoryCard({ analysis, onDelete, t }) {
     const date = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
     const handleDeleteClick = (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
         e.stopPropagation();
         onDelete(analysis.id);
     };
@@ -76,16 +76,16 @@ function HistoryCard({ analysis, onDelete, t }) {
             transition={{ duration: 0.4 }}
             className="col-span-1"
         >
-            <Link 
-                to={`/history/${analysis.id}`} 
+            <Link
+                to={`/history/${analysis.id}`}
                 className="group flex flex-col bg-white rounded-2xl h-full shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)] border border-zinc-100/80 transition-all duration-500 relative overflow-hidden"
             >
                 {/* Image Container */}
                 <div className="aspect-[4/5] sm:aspect-square w-full bg-zinc-50/50 relative overflow-hidden shrink-0">
                     {analysis.image_url ? (
-                        <img 
-                            src={analysis.image_url} 
-                            alt={`Scan ${analysis.skin_condition}`} 
+                        <img
+                            src={analysis.image_url}
+                            alt={`Scan ${analysis.skin_condition}`}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                     ) : (
@@ -93,14 +93,14 @@ function HistoryCard({ analysis, onDelete, t }) {
                             <Sparkles className="w-6 h-6 opacity-50" />
                         </div>
                     )}
-                    
+
                     {/* Minimalist Badge */}
                     <div className="absolute top-4 right-4 px-2.5 py-1.5 bg-white/90 backdrop-blur-md rounded-md flex items-center gap-1.5 shadow-sm">
                         <div className={`w-1.5 h-1.5 rounded-full ${colors.bg.replace('bg-', 'bg-').replace('100', '500')}`} />
                         <span className="text-[10px] font-medium text-zinc-800 uppercase tracking-widest">{analysis.skin_condition}</span>
                     </div>
                 </div>
-                
+
                 {/* Content Section */}
                 <div className="flex flex-col flex-1 p-5 bg-white relative z-10">
                     <div className="flex items-center justify-between mb-1">
@@ -114,13 +114,13 @@ function HistoryCard({ analysis, onDelete, t }) {
 
                     <div className="mt-auto pt-5 flex items-center justify-between group/action">
                         <span className="text-xs font-medium text-zinc-900 group-hover:text-zinc-600 transition-colors flex items-center gap-1">
-                            Details 
+                            Details
                             <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform opacity-50" />
                         </span>
-                        
-                        <button 
-                            onClick={handleDeleteClick} 
-                            className="text-zinc-300 hover:text-red-500 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 bg-white" 
+
+                        <button
+                            onClick={handleDeleteClick}
+                            className="text-zinc-300 hover:text-red-500 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 bg-white"
                             title="Delete"
                         >
                             <Trash2 className="w-4 h-4" />
@@ -136,15 +136,15 @@ function HistoryCard({ analysis, onDelete, t }) {
 export default function HistoryListPage() {
     const { isAuthenticated } = useAuth();
     const { t } = useLanguage();
-    
+
     // States Data
     const [analyses, setAnalyses] = useState([]);
     const [loading, setLoading] = useState(true);
-    
+
     // States Filter
     const [filterCategory, setFilterCategory] = useState('All');
     const [filterDate, setFilterDate] = useState('All');
-    
+
     // Modal states
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
     const [isDeleting, setIsDeleting] = useState(false);
@@ -159,8 +159,8 @@ export default function HistoryListPage() {
             if (!isAuthenticated) return;
             try {
                 setLoading(true);
-                const response = await historyAPI.getAll(); 
-                setAnalyses(response.data.analyses || []); 
+                const response = await historyAPI.getAll();
+                setAnalyses(response.data.analyses || []);
             } catch (err) {
                 console.error('Failed to fetch history:', err);
             } finally {
@@ -168,6 +168,21 @@ export default function HistoryListPage() {
             }
         };
         fetchHistory();
+
+        // Polling: cek ulang setiap 5 detik kalau ada gambar yang masih null
+        const interval = setInterval(async () => {
+            if (!isAuthenticated) return;
+            try {
+                const response = await historyAPI.getAll();
+                const latest = response.data.analyses || [];
+                const stillMissingImages = latest.some(a => !a.image_url);
+                setAnalyses(latest);
+                // Stop polling kalau semua gambar udah ada
+                if (!stillMissingImages) clearInterval(interval);
+            } catch { }
+        }, 5000);
+
+        return () => clearInterval(interval); // cleanup saat unmount
     }, [isAuthenticated]);
 
     // Delete Logic
@@ -196,7 +211,7 @@ export default function HistoryListPage() {
     // Filter Logic
     const filteredAnalyses = analyses.filter(item => {
         // Cek Kategori
-        const matchCategory = filterCategory === 'All' || 
+        const matchCategory = filterCategory === 'All' ||
             item.skin_condition.toLowerCase() === filterCategory.toLowerCase();
 
         // Cek Tanggal
@@ -228,21 +243,21 @@ export default function HistoryListPage() {
 
             {/* Cinematic Background */}
             <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                <motion.div 
+                <motion.div
                     style={{ y: bgY }}
-                    className="absolute -top-[10%] right-[10%] w-[600px] md:w-[1000px] h-[600px] md:h-[1000px] bg-gradient-to-b from-indigo-50/50 to-transparent rounded-full blur-[80px] md:blur-[120px] opacity-60" 
+                    className="absolute -top-[10%] right-[10%] w-[600px] md:w-[1000px] h-[600px] md:h-[1000px] bg-gradient-to-b from-indigo-50/50 to-transparent rounded-full blur-[80px] md:blur-[120px] opacity-60"
                 />
             </div>
 
             <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-24 md:pt-32">
-                
+
                 {/* --- HEADER --- */}
                 <div className="mb-10 md:mb-16">
                     <Link to={ROUTES.DASHBOARD} className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors mb-6 md:mb-8 text-sm font-medium">
                         <ArrowLeft className="w-4 h-4" />
                         <span>Dashboard</span>
                     </Link>
-                    
+
                     <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                             <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tighter text-zinc-900 leading-tight mb-3">
@@ -254,7 +269,7 @@ export default function HistoryListPage() {
                         </motion.div>
 
                         {/* --- FILTER CONTROLS --- */}
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.2 }}
                             className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto"
                         >
@@ -310,16 +325,16 @@ export default function HistoryListPage() {
                                 <Loader2 className="w-6 h-6 animate-spin text-zinc-900" />
                             </div>
                         ) : filteredAnalyses.length > 0 ? (
-                            <motion.div 
+                            <motion.div
                                 layout
                                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                             >
                                 {filteredAnalyses.map((analysis) => (
-                                    <HistoryCard 
-                                        key={analysis.id} 
-                                        analysis={analysis} 
-                                        onDelete={promptDelete} 
-                                        t={t} 
+                                    <HistoryCard
+                                        key={analysis.id}
+                                        analysis={analysis}
+                                        onDelete={promptDelete}
+                                        t={t}
                                     />
                                 ))}
                             </motion.div>
@@ -330,8 +345,8 @@ export default function HistoryListPage() {
                                 </div>
                                 <p className="text-lg text-zinc-900 font-medium mb-1">No scans found</p>
                                 <p className="text-sm text-zinc-400 max-w-sm mx-auto">
-                                    {(filterCategory !== 'All' || filterDate !== 'All') 
-                                        ? `No scans found for ${filterCategory !== 'All' ? filterCategory : 'selected'} conditions in this timeframe.` 
+                                    {(filterCategory !== 'All' || filterDate !== 'All')
+                                        ? `No scans found for ${filterCategory !== 'All' ? filterCategory : 'selected'} conditions in this timeframe.`
                                         : "Start your journey by running your first skin analysis."}
                                 </p>
                             </div>
@@ -340,7 +355,7 @@ export default function HistoryListPage() {
                 </div>
 
                 {/* Confirm Delete Modal */}
-                <ConfirmModal 
+                <ConfirmModal
                     isOpen={deleteModal.isOpen}
                     onClose={() => setDeleteModal({ isOpen: false, id: null })}
                     onConfirm={executeDelete}
