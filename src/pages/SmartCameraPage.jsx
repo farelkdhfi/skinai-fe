@@ -22,15 +22,15 @@ import {
 const ScanOverlay = ({ isActive, validations }) => {
     if (!isActive) return null;
 
-    const isReady = validations?.faceDetected && 
-                    validations?.brightness?.valid && 
-                    validations?.roi?.valid && 
-                    validations?.orientation?.valid;
-    
+    const isReady = validations?.faceDetected &&
+        validations?.brightness?.valid &&
+        validations?.roi?.valid &&
+        validations?.orientation?.valid;
+
     // Teal/Hijau kalem jika siap, Amber/Orange jika belum
-    const strokeColor = isReady 
-    ? 'rgba(20, 184, 166, 0.6)' // Teal dengan 60% opacity
-    : 'rgba(255, 255, 255, 0.7)';
+    const strokeColor = isReady
+        ? 'rgba(20, 184, 166, 0.6)' // Teal dengan 60% opacity
+        : 'rgba(255, 255, 255, 0.7)';
     const glowColor = isReady ? 'rgba(20, 184, 166, 0.5)' : 'rgba(255, 255, 255, 0.2)';
 
     // Definisi titik Hexagon yang proporsional
@@ -38,7 +38,7 @@ const ScanOverlay = ({ isActive, validations }) => {
 
     return (
         <div className="absolute inset-0 z-20 pointer-events-none p-4 md:p-8 flex items-center justify-center">
-            
+
             {/* SVG Hexagon Container */}
             <div className="relative w-full max-w-[85%] aspect-square flex items-center justify-center">
                 <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full overflow-visible drop-shadow-2xl">
@@ -47,20 +47,20 @@ const ScanOverlay = ({ isActive, validations }) => {
                         fill="none"
                         stroke={strokeColor}
                         strokeWidth="0.4"
-                        animate={{ 
+                        animate={{
                             filter: [`drop-shadow(0 0 5px ${glowColor})`, `drop-shadow(0 0 15px ${glowColor})`, `drop-shadow(0 0 5px ${glowColor})`]
                         }}
                         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     />
-                    
+
                     {/* Corner accents for the hexagon */}
                     <polygon points="48,2 52,2 52,4 48,4" fill={strokeColor} />
                     <polygon points="48,98 52,98 52,96 48,96" fill={strokeColor} />
                 </svg>
 
                 {/* Masking the scanner line inside the hexagon shape */}
-                <div 
-                    className="absolute inset-0 overflow-hidden" 
+                <div
+                    className="absolute inset-0 overflow-hidden"
                     style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
                 >
                     <motion.div
@@ -107,8 +107,8 @@ const StatusGrid = ({ validations }) => {
                 <div key={idx} className="flex flex-col items-center justify-center py-2">
                     <div className={`
                         p-2.5 md:p-3 rounded-full mb-2 md:mb-3 border transition-all duration-500
-                        ${item.valid 
-                            ? 'bg-teal-50 border-teal-100 shadow-[0_0_15px_rgba(20,184,166,0.15)]' 
+                        ${item.valid
+                            ? 'bg-teal-50 border-teal-100 shadow-[0_0_15px_rgba(20,184,166,0.15)]'
                             : 'bg-zinc-50 border-zinc-200'
                         }
                     `}>
@@ -193,6 +193,9 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
     const [currentLandmarks, setCurrentLandmarks] = useState(null);
     const [modelLoaded, setModelLoaded] = useState(false);
     const [countdown, setCountdown] = useState(null);
+
+    // modal
+    const [showSizeError, setShowSizeError] = useState(false);
 
     // DYNAMIC LOADING TEXT STATE
     const [loadingTextIdx, setLoadingTextIdx] = useState(0);
@@ -404,8 +407,16 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
     }, [mode, selectedImage, modelLoaded, handleResults]);
 
     const handleImageUpload = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            setSelectedImage(URL.createObjectURL(e.target.files[0]));
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+            // Validasi ukuran file (1MB = 1048576 bytes)
+            if (file.size > 1024 * 1024) {
+                setShowSizeError(true); // Panggil modal
+                e.target.value = ''; // Reset input
+                return;
+            }
+
+            setSelectedImage(URL.createObjectURL(file));
             setUploadFaceDetected(false);
         }
     };
@@ -607,12 +618,12 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                         {/* LOADING STATES DENGAN DYNAMIC TEXT */}
                         <AnimatePresence>
                             {(!modelLoaded || isAnalyzing) && (
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                     className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md"
                                 >
                                     <Loader2 className="w-8 h-8 md:w-10 md:h-10 text-white/90 animate-spin mb-4 md:mb-5" strokeWidth={1} />
-                                    
+
                                     {/* Dynamic Text Container */}
                                     <div className="h-6 overflow-hidden relative w-full flex justify-center">
                                         <AnimatePresence mode="wait">
@@ -808,6 +819,42 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                                 className="w-full py-3.5 bg-zinc-900 text-white text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase rounded-2xl hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-900/20"
                             >
                                 Try Again
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* File Size Error Modal */}
+            <AnimatePresence>
+                {showSizeError && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-900/60 backdrop-blur-lg p-6"
+                        onClick={() => setShowSizeError(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            className="bg-white rounded-[2rem] p-8 md:p-10 max-w-sm w-full text-center shadow-2xl"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="w-12 h-12 md:w-14 md:h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-5 border border-amber-100">
+                                <AlertCircle className="w-6 h-6 md:w-7 md:h-7 text-amber-500" strokeWidth={1.5} />
+                            </div>
+                            <h3 className="text-xl font-medium tracking-tight text-zinc-900 mb-3">
+                                File Too Large
+                            </h3>
+                            <p className="text-zinc-500 text-sm font-light leading-relaxed mb-8">
+                                Please select an image smaller than 1MB to ensure optimal processing speed and stability.
+                            </p>
+                            <button
+                                onClick={() => setShowSizeError(false)}
+                                className="w-full py-3.5 bg-zinc-900 text-white text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase rounded-2xl hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-900/20"
+                            >
+                                Got It
                             </button>
                         </motion.div>
                     </motion.div>

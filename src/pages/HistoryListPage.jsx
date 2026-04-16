@@ -28,7 +28,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, isLoading })
                         initial={{ opacity: 0, scale: 0.95, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-zinc-100 font-sans"
+                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-zinc-100 font-sans"
                     >
                         <div className="p-6 md:p-8">
                             <div className="flex justify-between items-start mb-5">

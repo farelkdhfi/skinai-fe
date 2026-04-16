@@ -1,13 +1,58 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-    ArrowLeft, Calendar, Info, TrendingUp, AlertCircle, 
-    Check, ExternalLink, Trash2, Sparkles, Network, Eye, EyeOff 
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    ArrowLeft, Calendar, Info, TrendingUp, AlertCircle,
+    Check, ExternalLink, Trash2, Sparkles, Network, Eye, EyeOff,
+    AlertTriangle,
+    X,
+    Loader2
 } from 'lucide-react';
 import { historyAPI } from '../services/api';
 import { DIAGNOSIS_COLORS, ROUTES, API_URL } from '../config';
 import Header from '../components/Header';
+import LoadingScreenAnalyze from '../components/LoadingScreenAnalyze';
+
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, isLoading }) => {
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        onClick={!isLoading ? onClose : undefined}
+                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-zinc-100 font-sans"
+                    >
+                        <div className="p-6 md:p-8">
+                            <div className="flex justify-between items-start mb-5">
+                                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                                </div>
+                                <button onClick={onClose} disabled={isLoading} className="p-2 text-zinc-400 hover:text-zinc-800 transition-colors disabled:opacity-50">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <h3 className="text-xl font-medium text-zinc-900 mb-2">{title}</h3>
+                            <p className="text-zinc-500 text-sm mb-8 leading-relaxed">{message}</p>
+                            <div className="flex gap-3">
+                                <button onClick={onClose} disabled={isLoading} className="flex-1 px-4 py-2.5 rounded-lg border border-zinc-200 text-zinc-700 text-sm font-medium hover:bg-zinc-50 transition-colors disabled:opacity-50">Cancel</button>
+                                <button onClick={onConfirm} disabled={isLoading} className="flex-1 px-4 py-2.5 rounded-lg bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-70">
+                                    {isLoading ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Deleting...</span></> : 'Delete'}
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+    );
+};
 
 // --- Animation Variants ---
 const containerVariants = {
@@ -37,6 +82,24 @@ export default function HistoryDetailPage() {
     // State untuk toggle heatmap
     const [showHeatmap, setShowHeatmap] = useState(true);
 
+    // modal delete
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await historyAPI.delete(id);
+            navigate(ROUTES.DASHBOARD);
+        } catch (err) {
+            console.error('Error deleting scan:', err);
+            alert('Failed to delete scan');
+        } finally {
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+        }
+    };
+
     useEffect(() => {
         const fetchAnalysis = async () => {
             try {
@@ -54,14 +117,7 @@ export default function HistoryDetailPage() {
     }, [id]);
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-2 border-zinc-100 border-t-indigo-600 rounded-full animate-spin"></div>
-                    <p className="text-zinc-400 text-sm tracking-widest uppercase">Loading Analysis</p>
-                </div>
-            </div>
-        );
+        return <LoadingScreenAnalyze />;
     }
 
     if (error || !analysis) {
@@ -117,18 +173,7 @@ export default function HistoryDetailPage() {
                     </Link>
 
                     <button
-                        onClick={async () => {
-                            if (window.confirm('Delete this record permanently?')) {
-                                try {
-                                    setLoading(true);
-                                    await historyAPI.delete(id);
-                                    navigate(ROUTES.DASHBOARD);
-                                } catch (err) {
-                                    alert('Failed to delete');
-                                    setLoading(false);
-                                }
-                            }
-                        }}
+                        onClick={() => setIsDeleteModalOpen(true)}
                         className="text-zinc-400 hover:text-red-600 transition-colors p-2"
                         title="Delete Analysis"
                     >
@@ -147,7 +192,7 @@ export default function HistoryDetailPage() {
                                 <span className={`w-2 h-2 rounded-full ${colors.bg.replace('bg-', 'bg-').replace('100', '500')}`}></span>
                                 History Record
                             </div>
-                            
+
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tighter text-zinc-900 mb-5 md:mb-6 capitalize leading-[0.95] md:leading-[0.9]">
                                 {analysis.skin_condition}
                             </h1>
@@ -237,7 +282,7 @@ export default function HistoryDetailPage() {
                                                 className="w-full h-full object-cover absolute inset-0"
                                             />
                                         )}
-                                        
+
                                         {/* Overlay Layer */}
                                         {hasOverlay && (
                                             <>
@@ -346,6 +391,15 @@ export default function HistoryDetailPage() {
                     </motion.section>
                 )}
             </motion.main>
+
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => !isDeleting && setIsDeleteModalOpen(false)}
+                onConfirm={handleDelete}
+                title="Delete History"
+                message="Are you sure you want to delete this specific analysis record? This action cannot be undone."
+                isLoading={isDeleting}
+            />
         </div>
     );
 }
