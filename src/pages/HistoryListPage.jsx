@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import {
-    ArrowLeft, Calendar, Trash2,
-    ChevronRight, AlertTriangle, X, Loader2, Sparkles, ScanLine,
+    ArrowLeft, Calendar,
+    ChevronRight, Loader2, Sparkles, ScanLine,
     Filter, CalendarDays, ChevronDown
 } from 'lucide-react';
 
@@ -13,59 +13,11 @@ import { historyAPI } from '../services/api';
 import { DIAGNOSIS_COLORS, ROUTES } from '../config';
 import Header from '../components/Header';
 
-// --- MODAL COMPONENT ---
-const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, isLoading }) => {
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                    <motion.div
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        onClick={!isLoading ? onClose : undefined}
-                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                    />
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-zinc-100 font-sans"
-                    >
-                        <div className="p-6 md:p-8">
-                            <div className="flex justify-between items-start mb-5">
-                                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-                                    <AlertTriangle className="w-5 h-5 text-red-500" />
-                                </div>
-                                <button onClick={onClose} disabled={isLoading} className="p-2 text-zinc-400 hover:text-zinc-800 transition-colors disabled:opacity-50">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                            <h3 className="text-xl font-medium text-zinc-900 mb-2">{title}</h3>
-                            <p className="text-zinc-500 text-sm mb-8 leading-relaxed">{message}</p>
-                            <div className="flex gap-3">
-                                <button onClick={onClose} disabled={isLoading} className="flex-1 px-4 py-2.5 rounded-lg border border-zinc-200 text-zinc-700 text-sm font-medium hover:bg-zinc-50 transition-colors disabled:opacity-50">Cancel</button>
-                                <button onClick={onConfirm} disabled={isLoading} className="flex-1 px-4 py-2.5 rounded-lg bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-70">
-                                    {isLoading ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Deleting...</span></> : 'Delete'}
-                                </button>
-                            </div>
-                        </div>
-                    </motion.div>
-                </>
-            )}
-        </AnimatePresence>
-    );
-};
-
 // --- HistoryCard Component (Minimalist & Elegant Style) ---
-function HistoryCard({ analysis, onDelete, t }) {
+function HistoryCard({ analysis, t }) {
     const colors = DIAGNOSIS_COLORS[analysis.skin_condition] || DIAGNOSIS_COLORS.Normal;
     const dateObj = new Date(analysis.created_at);
     const date = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-
-    const handleDeleteClick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onDelete(analysis.id);
-    };
 
     return (
         <motion.div
@@ -117,14 +69,6 @@ function HistoryCard({ analysis, onDelete, t }) {
                             Details
                             <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform opacity-50" />
                         </span>
-
-                        <button
-                            onClick={handleDeleteClick}
-                            className="text-zinc-300 hover:text-red-500 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 bg-white"
-                            title="Delete"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </button>
                     </div>
                 </div>
             </Link>
@@ -144,10 +88,6 @@ export default function HistoryListPage() {
     // States Filter
     const [filterCategory, setFilterCategory] = useState('All');
     const [filterDate, setFilterDate] = useState('All');
-
-    // Modal states
-    const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
-    const [isDeleting, setIsDeleting] = useState(false);
 
     // Background Animation
     const { scrollY } = useScroll();
@@ -184,33 +124,6 @@ export default function HistoryListPage() {
 
         return () => clearInterval(interval); // cleanup saat unmount
     }, [isAuthenticated]);
-
-    // Delete Logic
-    const promptDelete = (id) => setDeleteModal({ isOpen: true, id: id });
-
-    const executeDelete = async () => {
-        const id = deleteModal.id;
-        if (!id) return;
-
-        setIsDeleting(true);
-        try {
-            await historyAPI.delete(id);
-        } catch (err) {
-            // Cek apakah errornya karena data memang sudah tidak ada (404)
-            if (err.response?.status !== 404) {
-                console.error('Failed to delete analysis:', err);
-                alert('Failed to delete analysis');
-                setIsDeleting(false);
-                return; // Stop eksekusi di sini kalau errornya bukan 404
-            }
-            console.warn("Data sudah tidak ada, anggap berhasil");
-        }
-
-        // Baris di bawah ini akan tereksekusi jika sukses API ATAU jika error 404
-        setAnalyses(prev => prev.filter(item => item.id !== id));
-        setDeleteModal({ isOpen: false, id: null });
-        setIsDeleting(false);
-    };
 
     // Extract unique categories for filter options
     const uniqueCategories = ['All', ...new Set(analyses.map(item => item.skin_condition))];
@@ -340,7 +253,6 @@ export default function HistoryListPage() {
                                     <HistoryCard
                                         key={analysis.id}
                                         analysis={analysis}
-                                        onDelete={promptDelete}
                                         t={t}
                                     />
                                 ))}
@@ -360,16 +272,6 @@ export default function HistoryListPage() {
                         )}
                     </AnimatePresence>
                 </div>
-
-                {/* Confirm Delete Modal */}
-                <ConfirmModal
-                    isOpen={deleteModal.isOpen}
-                    onClose={() => setDeleteModal({ isOpen: false, id: null })}
-                    onConfirm={executeDelete}
-                    title="Delete Scan"
-                    message="This action cannot be undone. The scan image and its AI data will be permanently removed."
-                    isLoading={isDeleting}
-                />
             </main>
         </div>
     );
