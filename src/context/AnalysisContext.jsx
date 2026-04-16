@@ -1,10 +1,6 @@
-/**
- * Analysis Context
- * Global state for current analysis
- */
-
 import { createContext, useContext, useState, useCallback } from 'react';
 import { analyzeAPI, historyAPI } from '../services/api';
+import { createClient } from "@supabase/supabase-js";
 
 const AnalysisContext = createContext(null);
 
@@ -19,8 +15,6 @@ export function AnalysisProvider({ children }) {
         setIsAnalyzing(true);
         setError(null);
 
-        // Store images in state, including full_image if provided (for history saving)
-        // usage in ResultsPage relies on keys matching results.predictions, so extras here are safe
         setPatches(fullImage ? { ...images, full_image: fullImage } : images);
 
         try {
@@ -55,23 +49,92 @@ export function AnalysisProvider({ children }) {
         }
     }, []);
 
-    const saveToHistory = useCallback(async () => {
+    const uploadImageToSupabase = async (base64String, userId) => {
+        if (!base64String) return null;
+        try {
+            const supabase = createClient(
+                import.meta.env.VITE_SUPABASE_URL,
+                import.meta.env.VITE_SUPABASE_ANON_KEY
+            );
+
+            const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+            let blob;
+            let contentType = 'image/jpeg';
+            let ext = 'jpg';
+
+            if (matches) {
+                contentType = matches[1];
+                ext = contentType.split('/')[1];
+                const byteString = atob(matches[2]);
+                const byteArray = new Uint8Array(byteString.length);
+                for (let i = 0; i < byteString.length; i++) {
+                    byteArray[i] = byteString.charCodeAt(i);
+                }
+                blob = new Blob([byteArray], { type: contentType });
+            } else {
+                const byteString = atob(base64String);
+                const byteArray = new Uint8Array(byteString.length);
+                for (let i = 0; i < byteString.length; i++) {
+                    byteArray[i] = byteString.charCodeAt(i);
+                }
+                blob = new Blob([byteArray], { type: contentType });
+            }
+
+            const filename = `${crypto.randomUUID()}.${ext}`;
+            const filePath = `${userId}/${filename}`;
+
+            const { error } = await supabase.storage
+                .from('analysis-images')
+                .upload(filePath, blob, { contentType, upsert: false });
+
+            if (error) throw error;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('analysis-images')
+                .getPublicUrl(filePath);
+
+            return publicUrl;
+        } catch (err) {
+            console.error('Upload gagal:', err);
+            return null;
+        }
+    };
+
+    const saveToHistory = useCallback(async (userId) => {
         if (!results) return;
+
+        // Upload semua gambar dulu dari browser langsung ke Supabase
+        const mainImageUrl = await uploadImageToSupabase(
+            patches['full_image'] || patches['camera_capture'] || null,
+            userId
+        );
+        const heatmapUrl = await uploadImageToSupabase(
+            results.cfcm_image || null,
+            userId
+        );
+
+        const patchesWithUrls = await Promise.all(
+            (results.predictions || []).map(async (p) => {
+                const patchUrl = await uploadImageToSupabase(patches[p.region] || null, userId);
+                const heatmapPatchUrl = await uploadImageToSupabase(results.gradcam_heatmaps?.[p.region] || null, userId);
+                return {
+                    region: p.region,
+                    predicted_class: p.predicted_class,
+                    confidence: p.confidence,
+                    image_url: patchUrl,
+                    heatmap_image_url: heatmapPatchUrl
+                };
+            })
+        );
 
         const analysisData = {
             skin_condition: results.final_result?.class,
             confidence_score: results.final_result?.confidence,
             patches_analyzed: results.predictions?.length,
             voting_method: results.final_result?.voting_method,
-            patches: results.predictions?.map(p => ({
-                region: p.region,
-                predicted_class: p.predicted_class,
-                confidence: p.confidence,
-                image: patches[p.region] || null,
-                heatmap_image: results.gradcam_heatmaps?.[p.region] || null
-            })),
-            image: patches['full_image'] || patches['camera_capture'] || null, // Fallback if full_image was passed differently
-            heatmap_image: results.cfcm_image || results.gradcam_heatmaps?.['full_image'] || null,
+            patches: patchesWithUrls,
+            image_url: mainImageUrl,
+            heatmap_image_url: heatmapUrl,
             recommended_ingredients: recommendations?.ingredients || recommendations || []
         };
 

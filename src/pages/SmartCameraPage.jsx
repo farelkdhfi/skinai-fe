@@ -5,7 +5,7 @@ import Webcam from 'react-webcam';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import {
     Upload,
-    AlertCircle, Sun, Move, Maximize, Loader2,
+    AlertCircle, Loader2,
     ImageIcon, ArrowLeft, Aperture
 } from 'lucide-react';
 
@@ -15,153 +15,10 @@ import {
     ROI_POINTS,
     VALIDATION_THRESHOLDS, CROP_SIZE, ROUTES
 } from '../config';
+import ScanOverlay from '../components/ScanOverlay';
+import GuidanceOverlay from '../components/GuidanceOverlay';
+import StatusGrid from '../components/StatusGrid';
 
-// --- COMPONENTS: ELEGANT UI ELEMENTS ---
-
-// 1. Futuristic Scan Overlay (TRUE HEXAGONAL LENS)
-const ScanOverlay = ({ isActive, validations }) => {
-    if (!isActive) return null;
-
-    const isReady = validations?.faceDetected &&
-        validations?.brightness?.valid &&
-        validations?.roi?.valid &&
-        validations?.orientation?.valid;
-
-    // Teal/Hijau kalem jika siap, Amber/Orange jika belum
-    const strokeColor = isReady
-        ? 'rgba(20, 184, 166, 0.6)' // Teal dengan 60% opacity
-        : 'rgba(255, 255, 255, 0.7)';
-    const glowColor = isReady ? 'rgba(20, 184, 166, 0.5)' : 'rgba(255, 255, 255, 0.2)';
-
-    // Definisi titik Hexagon yang proporsional
-    const hexPoints = "50,2 95,25 95,75 50,98 5,75 5,25";
-
-    return (
-        <div className="absolute inset-0 z-20 pointer-events-none p-4 md:p-8 flex items-center justify-center">
-
-            {/* SVG Hexagon Container */}
-            <div className="relative w-full max-w-[85%] aspect-square flex items-center justify-center">
-                <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full overflow-visible drop-shadow-2xl">
-                    <motion.polygon
-                        points={hexPoints}
-                        fill="none"
-                        stroke={strokeColor}
-                        strokeWidth="0.4"
-                        animate={{
-                            filter: [`drop-shadow(0 0 5px ${glowColor})`, `drop-shadow(0 0 15px ${glowColor})`, `drop-shadow(0 0 5px ${glowColor})`]
-                        }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    />
-
-                    {/* Corner accents for the hexagon */}
-                    <polygon points="48,2 52,2 52,4 48,4" fill={strokeColor} />
-                    <polygon points="48,98 52,98 52,96 48,96" fill={strokeColor} />
-                </svg>
-
-                {/* Masking the scanner line inside the hexagon shape */}
-                <div
-                    className="absolute inset-0 overflow-hidden"
-                    style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
-                >
-                    <motion.div
-                        initial={{ top: "-10%", opacity: 0 }}
-                        animate={{ top: "110%", opacity: [0, 1, 0] }}
-                        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                        className="absolute left-0 right-0 h-[1.5px] bg-white shadow-[0_0_20px_rgba(255,255,255,1)]"
-                    />
-                </div>
-
-                {/* Titik Fokus Tengah (Soft) */}
-                <div className="w-1 h-1 bg-white/40 rounded-full" />
-            </div>
-
-            {/* Indikator Sistem Bawah */}
-            <div className="absolute bottom-6 md:bottom-10 left-0 right-0 text-center">
-                <motion.div
-                    initial={{ opacity: 0.5 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ repeat: Infinity, duration: 1.5, repeatType: "reverse" }}
-                    className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10"
-                >
-                    <div className={`w-1.5 h-1.5 rounded-full ${isReady ? 'bg-teal-400' : 'bg-amber-400'} animate-pulse transition-colors duration-500`} />
-                    <span className="text-[9px] md:text-[10px] font-medium tracking-[0.2em] text-white/90 uppercase">
-                        {isReady ? 'System Locked' : 'Scanning'}
-                    </span>
-                </motion.div>
-            </div>
-        </div>
-    );
-};
-
-// 2. Minimalist Status Grid (Clean & Elegant)
-const StatusGrid = ({ validations }) => {
-    const items = [
-        { label: 'LIGHTING', valid: validations.brightness.valid, value: validations.brightness.value, icon: Sun },
-        { label: 'PROXIMITY', valid: validations.roi.valid, value: `${validations.roi.value}%`, icon: Maximize },
-        { label: 'ANGLE', valid: validations.orientation.valid, value: '0°', icon: Move },
-    ];
-
-    return (
-        <div className="grid grid-cols-3 gap-2 md:gap-4 w-full">
-            {items.map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center justify-center py-2">
-                    <div className={`
-                        p-2.5 md:p-3 rounded-full mb-2 md:mb-3 border transition-all duration-500
-                        ${item.valid
-                            ? 'bg-teal-50 border-teal-100 shadow-[0_0_15px_rgba(20,184,166,0.15)]'
-                            : 'bg-zinc-50 border-zinc-200'
-                        }
-                    `}>
-                        <item.icon className={`w-4 h-4 md:w-5 md:h-5 transition-colors duration-500 ${item.valid ? 'text-teal-600' : 'text-zinc-400'}`} strokeWidth={1.5} />
-                    </div>
-                    <span className="text-[8px] md:text-[9px] font-bold tracking-[0.15em] text-zinc-400 uppercase mb-0.5">
-                        {item.label}
-                    </span>
-                    <span className={`text-xs md:text-sm font-mono tracking-tight transition-colors duration-500 ${item.valid ? 'text-teal-700 font-semibold' : 'text-zinc-400'}`}>
-                        {item.valid ? 'OK' : item.value || '--'}
-                    </span>
-                </div>
-            ))}
-        </div>
-    );
-};
-
-// 3. Elegant Real-time Guidance Overlay
-const GuidanceOverlay = ({ validations, mode, isAnalyzing, capturedFrame }) => {
-    if (mode !== 'camera' || isAnalyzing || capturedFrame) return null;
-
-    let guidance = null;
-
-    if (!validations.faceDetected) {
-        guidance = { text: "ALIGN FACE IN FRAME", icon: Maximize, color: "text-amber-400" };
-    } else if (!validations.brightness.valid) {
-        guidance = { text: "IMPROVE LIGHTING", icon: Sun, color: "text-amber-400" };
-    } else if (!validations.roi.valid) {
-        guidance = { text: "MOVE CLOSER", icon: Move, color: "text-amber-400" };
-    } else if (!validations.orientation.valid) {
-        guidance = { text: "LOOK STRAIGHT AHEAD", icon: AlertCircle, color: "text-amber-400" };
-    }
-
-    return (
-        <AnimatePresence>
-            {guidance && (
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute top-6 left-0 right-0 z-30 flex justify-center pointer-events-none"
-                >
-                    <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 shadow-2xl">
-                        <guidance.icon className={`w-3.5 h-3.5 md:w-4 md:h-4 animate-pulse ${guidance.color}`} strokeWidth={2} />
-                        <span className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] text-white/90 uppercase">
-                            {guidance.text}
-                        </span>
-                    </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-};
 
 export default function SmartCameraPage({ initialMode = 'camera' }) {
     const navigate = useNavigate();
