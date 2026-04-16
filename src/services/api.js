@@ -41,10 +41,21 @@ api.interceptors.response.use(
             }
         }
 
-        // Jika error 401 DAN BUKAN dari proses login, redirect ke login
-        if (error.response?.status === 401 && !isLoginRequest) {
-            localStorage.removeItem('access_token');
-            window.location.href = '/login';
+        // Auto refresh token kalau 401
+        if (error.response?.status === 401 && !isLoginRequest && !error.config._retry) {
+            error.config._retry = true;
+            try {
+                await authAPI.refreshToken();
+                // Ulangi request asli dengan token baru
+                const newToken = localStorage.getItem('access_token');
+                error.config.headers.Authorization = `Bearer ${newToken}`;
+                return api(error.config);
+            } catch {
+                // Refresh gagal, paksa logout
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = '/login';
+            }
         }
 
         return Promise.reject(error);
@@ -64,6 +75,10 @@ export const authAPI = {
         if (response.data.access_token) {
             localStorage.setItem('access_token', response.data.access_token);
         }
+        // Simpan refresh_token juga
+        if (response.data.refresh_token) {
+            localStorage.setItem('refresh_token', response.data.refresh_token);
+        }
         return response;
     },
 
@@ -73,6 +88,20 @@ export const authAPI = {
     },
 
     getMe: () => api.get('/auth/me'),
+
+    // Tambahkan ini ↓
+    refreshToken: async () => {
+        const refresh_token = localStorage.getItem('refresh_token');
+        if (!refresh_token) throw new Error('No refresh token');
+        const response = await api.post('/auth/refresh', { refresh_token });
+        if (response.data.access_token) {
+            localStorage.setItem('access_token', response.data.access_token);
+        }
+        if (response.data.refresh_token) {
+            localStorage.setItem('refresh_token', response.data.refresh_token);
+        }
+        return response;
+    },
 };
 
 // =============================================================================
