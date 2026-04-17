@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft, Calendar, Info, TrendingUp, AlertCircle,
     Check, ExternalLink, Trash2, Sparkles, Network, Eye, EyeOff,
-    AlertTriangle,
+    AlertTriangle, ArrowRight,
     X,
     Loader2
 } from 'lucide-react';
@@ -12,6 +12,7 @@ import { historyAPI } from '../services/api';
 import { DIAGNOSIS_COLORS, ROUTES, API_URL } from '../config';
 import Header from '../components/Header';
 import LoadingScreenAnalyze from '../components/LoadingScreenAnalyze';
+import IngredientDetailModal from '../components/IngredientDetailModal';
 
 const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, isLoading }) => {
     return (
@@ -79,13 +80,26 @@ export default function HistoryDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // State untuk toggle heatmap
+    // State untuk toggle heatmap & Modal AI Chat
     const [showHeatmap, setShowHeatmap] = useState(true);
+    const [selectedIngredient, setSelectedIngredient] = useState(null);
 
     // modal delete
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isDeleted, setIsDeleted] = useState(false);
+
+    // Mencegah scroll body saat modal terbuka
+    useEffect(() => {
+        if (selectedIngredient) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [selectedIngredient]);
 
     const handleDelete = async () => {
         setIsDeleting(true);
@@ -284,17 +298,6 @@ export default function HistoryDetailPage() {
 
                     {/* --- Right Column: Visuals --- */}
                     <div className="lg:col-span-7">
-                        {/* Tombol Toggle Heatmap */}
-                        <motion.div variants={itemVariants} className="flex justify-end mb-6 md:mb-8">
-                            <button
-                                onClick={() => setShowHeatmap(!showHeatmap)}
-                                className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs font-medium rounded-full bg-zinc-900 text-white hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                            >
-                                {showHeatmap ? <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
-                                {showHeatmap ? 'Hide Heatmaps' : 'Show Heatmaps'}
-                            </button>
-                        </motion.div>
-
                         <div className="space-y-12 md:space-y-16">
                             {/* 1. CFCM: Full Spectrum Scan */}
                             {(baseImageUrl || overlayImageUrl) ? (
@@ -354,6 +357,29 @@ export default function HistoryDetailPage() {
                                     </div>
                                 </motion.div>
                             )}
+
+                            {/* --- Heatmap Toggle Relocated Here --- */}
+                            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 bg-zinc-50 border border-zinc-100 rounded-[1.25rem] sm:rounded-[1.5rem]">
+                                <div>
+                                    <h4 className="text-[11px] sm:text-xs font-bold text-zinc-900 uppercase tracking-widest flex items-center gap-2">
+                                        <Eye className="w-3.5 h-3.5 text-zinc-500" />
+                                        Visual Controls
+                                    </h4>
+                                    <p className="text-[10px] sm:text-[11px] text-zinc-500 mt-1">Toggle to see exactly what the AI sees</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowHeatmap(!showHeatmap)}
+                                    className={`relative flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs font-medium rounded-full transition-all shadow-sm w-full sm:w-auto ${
+                                        showHeatmap 
+                                            ? 'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-md' 
+                                            : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50'
+                                    }`}
+                                >
+                                    {showHeatmap ? <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                                    {showHeatmap ? 'Hide AI Heatmap' : 'Show AI Heatmap'}
+                                </button>
+                            </motion.div>
+
                         </div>
                     </div>
                 </div>
@@ -361,18 +387,25 @@ export default function HistoryDetailPage() {
                 {/* --- Recommendations Section --- */}
                 {analysis.recommended_ingredients && (
                     <motion.section variants={itemVariants} className="border-t border-zinc-100 pt-12 md:pt-20">
-                        <div className="flex items-center gap-4 mb-10 md:mb-14">
-                            <span className="w-2 h-9 bg-indigo-600 rounded-full"></span>
-                            <div>
-                                <div className="flex items-center gap-2.5">
-                                    <h2 className="text-xl md:text-2xl font-medium text-zinc-900">Condition-Anchored Regimen</h2>
-                                    <span className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                                        <Network className="w-3.5 h-3.5" /> Semantic Clustering
-                                    </span>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 md:mb-14">
+                            <div className="flex gap-4">
+                                <span className="hidden sm:block w-2 h-9 bg-indigo-600 rounded-full shrink-0"></span>
+                                <div>
+                                    <div className="flex flex-wrap items-center gap-2.5">
+                                        <h2 className="text-xl md:text-2xl font-medium text-zinc-900">Condition-Anchored Regimen</h2>
+                                        <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shrink-0">
+                                            <Network className="w-3.5 h-3.5" /> Semantic Clustering
+                                        </span>
+                                    </div>
+                                    <p className="text-sm md:text-base text-zinc-400 font-light mt-2 max-w-2xl">
+                                        Algorithmically clustered ingredients matching your {analysis.skin_condition} skin profile.
+                                    </p>
                                 </div>
-                                <p className="text-sm md:text-base text-zinc-400 font-light mt-2 max-w-2xl">
-                                    Algorithmically clustered ingredients matching your {analysis.skin_condition} skin profile.
-                                </p>
+                            </div>
+                            {/* AI Chat Badge */}
+                            <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-zinc-900 rounded-full shadow-sm">
+                                <Sparkles className="w-4 h-4 text-indigo-300" />
+                                <span className="text-xs font-medium text-white">SkinAI Assistant Ready</span>
                             </div>
                         </div>
 
@@ -380,13 +413,13 @@ export default function HistoryDetailPage() {
                             {/* Primary */}
                             {analysis.recommended_ingredients.primary_ingredients && (
                                 <div className="space-y-6 md:space-y-8">
-                                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2.5">
+                                    <h3 className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2.5">
                                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                                         Primary Match (Anchor Cluster)
                                     </h3>
                                     <div className="space-y-4">
                                         {analysis.recommended_ingredients.primary_ingredients.map((ing, i) => (
-                                            <IngredientCard key={i} ingredient={ing} type="primary" />
+                                            <IngredientRow key={i} ingredient={ing} type="primary" onViewDetails={setSelectedIngredient} />
                                         ))}
                                     </div>
                                 </div>
@@ -395,13 +428,13 @@ export default function HistoryDetailPage() {
                             {/* Alternatives */}
                             {analysis.recommended_ingredients.alternative_ingredients?.length > 0 && (
                                 <div className="space-y-6 md:space-y-8">
-                                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2.5">
+                                    <h3 className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2.5">
                                         <span className="w-2.5 h-2.5 rounded-full bg-zinc-300"></span>
                                         Alternative Options (Supporting Clusters)
                                     </h3>
                                     <div className="space-y-4">
                                         {analysis.recommended_ingredients.alternative_ingredients.map((ing, i) => (
-                                            <IngredientCard key={i} ingredient={ing} type="secondary" />
+                                            <IngredientRow key={i} ingredient={ing} type="secondary" onViewDetails={setSelectedIngredient} />
                                         ))}
                                     </div>
                                 </div>
@@ -412,7 +445,7 @@ export default function HistoryDetailPage() {
                                 <div className="space-y-6 md:space-y-8 col-span-full">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                                         {analysis.recommended_ingredients.map((ing, i) => (
-                                            <IngredientCard key={i} ingredient={ing} type="primary" />
+                                            <IngredientRow key={i} ingredient={ing} type="primary" onViewDetails={setSelectedIngredient} />
                                         ))}
                                     </div>
                                 </div>
@@ -421,6 +454,16 @@ export default function HistoryDetailPage() {
                     </motion.section>
                 )}
             </motion.main>
+
+            {/* --- Render Modal Detail --- */}
+            <AnimatePresence>
+                {selectedIngredient && (
+                    <IngredientDetailModal 
+                        ingredient={selectedIngredient} 
+                        onClose={() => setSelectedIngredient(null)} 
+                    />
+                )}
+            </AnimatePresence>
 
             <ConfirmModal
                 isOpen={isDeleteModalOpen}
@@ -434,7 +477,7 @@ export default function HistoryDetailPage() {
     );
 }
 
-// --- Sub-components with Elegant Design ---
+// --- Sub-components ---
 
 function PatchCard({ item, imageUrl, heatmapUrl, showHeatmap }) {
     const colors = DIAGNOSIS_COLORS[item.predicted_class] || DIAGNOSIS_COLORS.Normal;
@@ -479,43 +522,42 @@ function PatchCard({ item, imageUrl, heatmapUrl, showHeatmap }) {
     );
 }
 
-function IngredientCard({ ingredient, type = 'primary' }) {
+function IngredientRow({ ingredient, type = 'primary', onViewDetails }) {
     const isPrimary = type === 'primary';
-
     return (
         <div className={`
-            group flex flex-col p-4 md:p-5 rounded-xl md:rounded-2xl border transition-all duration-300 h-full
+            group flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 md:gap-5 p-3.5 sm:p-4 md:p-5 rounded-[1.25rem] sm:rounded-2xl border transition-all duration-300
             ${isPrimary
-                ? 'bg-white border-zinc-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-900/5'
-                : 'bg-zinc-50/50 border-zinc-100 hover:bg-white hover:border-zinc-200'
+                ? 'bg-white border-zinc-200 hover:border-indigo-300 hover:shadow-lg'
+                : 'bg-zinc-50/50 border-transparent hover:bg-white hover:border-zinc-200 hover:shadow-sm'
             }
         `}>
-            <div className="flex justify-between items-start mb-2 md:mb-3">
-                <div className={`
-                    w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center
-                    ${isPrimary ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-100 text-zinc-400'}
-                `}>
-                    <Check className="w-3.5 h-3.5 md:w-4 md:h-4" strokeWidth={2} />
+            <div className="flex items-start gap-3 w-full">
+                <div className={`mt-0.5 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center shrink-0 ${isPrimary ? 'bg-indigo-50 text-indigo-600' : 'bg-zinc-200 text-zinc-500'}`}>
+                    <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" strokeWidth={3} />
                 </div>
-                {ingredient.reference_url && (
-                    <a
-                        href={ingredient.reference_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity p-2 text-zinc-300 hover:text-indigo-600"
-                        title="Read Research"
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                        <h4 className="font-medium text-sm md:text-base text-zinc-900 truncate">{ingredient.name}</h4>
+                    </div>
+                    <p className="text-[11px] sm:text-xs md:text-sm text-zinc-500 font-light leading-relaxed line-clamp-2 mb-3 sm:mb-4">
+                        {ingredient.what_it_does}
+                    </p>
+                    
+                    {/* Tombol View Details dengan AI Prompt */}
+                    <button 
+                        onClick={() => onViewDetails(ingredient)}
+                        className={`inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] md:text-xs font-semibold px-3.5 py-2 sm:px-4 sm:py-2 rounded-full transition-all w-max
+                            ${isPrimary 
+                                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:shadow-sm' 
+                                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 hover:shadow-sm'
+                            }`}
                     >
-                        <ExternalLink className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                    </a>
-                )}
+                        <Sparkles className={`w-3 h-3 md:w-3.5 md:h-3.5 ${isPrimary ? 'text-indigo-500' : 'text-zinc-500'}`} />
+                        Detail & Ask SkinAI <ArrowRight className="w-3 h-3 md:w-3.5 md:h-3.5 ml-0.5" />
+                    </button>
+                </div>
             </div>
-
-            <h4 className="font-medium text-sm md:text-base text-zinc-900 mb-1 md:mb-2 group-hover:text-indigo-900 transition-colors">
-                {ingredient.name}
-            </h4>
-            <p className="text-xs md:text-sm text-zinc-500 font-light leading-relaxed line-clamp-3">
-                {ingredient.what_it_does}
-            </p>
         </div>
     );
 }
