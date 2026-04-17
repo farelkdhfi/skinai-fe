@@ -25,8 +25,19 @@ export function AuthProvider({ children }) {
                     setUser(response.data.user);
                     setSession({ access_token: token });
                     setIsAuthenticated(true);
-                } catch {
+                } catch (err) {
+                    if (!err.response) {
+                        console.warn('Network issue, assume still logged in');
+
+                        setIsAuthenticated(true); // 🔥 ini kuncinya
+                        setSession({ access_token: token });
+
+                        setLoading(false);
+                        return;
+                    }
+
                     localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
                     setIsAuthenticated(false);
                 }
             }
@@ -63,6 +74,8 @@ export function AuthProvider({ children }) {
             setSession(null);
             setIsAuthenticated(false);
             localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/login';
         }
     }, []);
 

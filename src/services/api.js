@@ -23,10 +23,30 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
 // Handle token expiry + auto retry saat timeout
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
+        if (!error.response) {
+            console.error('Network error / failed to fetch');
+
+            error.message = 'Network error. Please check your connection.';
+            return Promise.reject(error);
+        }
         const isLoginRequest = error.config?.url?.includes('/auth/login');
 
         // Auto retry kalau timeout (maksimal 2x retry)
@@ -42,16 +62,37 @@ api.interceptors.response.use(
 
         // Auto refresh token kalau 401
         if (error.response?.status === 401 && !isLoginRequest && !error.config._retry) {
+
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    error.config.headers.Authorization = 'Bearer ' + token;
+                    return api(error.config);
+                });
+            }
+
             error.config._retry = true;
+            isRefreshing = true;
+
             try {
-                await authAPI.refreshToken();
-                const newToken = localStorage.getItem('access_token');
-                error.config.headers.Authorization = `Bearer ${newToken}`;
+                const res = await authAPI.refreshToken();
+                const newToken = res.data.access_token;
+
+                processQueue(null, newToken);
+
+                error.config.headers.Authorization = 'Bearer ' + newToken;
                 return api(error.config);
-            } catch {
+
+            } catch (err) {
+                processQueue(err, null);
+
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
                 window.location.href = '/login';
+                return Promise.reject(err);
+            } finally {
+                isRefreshing = false;
             }
         }
 
@@ -88,6 +129,7 @@ export const authAPI = {
     logout: async () => {
         await api.post('/auth/logout');
         localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
     },
 
     getMe: () => api.get('/auth/me'),
