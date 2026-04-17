@@ -50,17 +50,34 @@ const DualBubbleMesh = () => {
 };
 
 // --- 2. Animation Variants ---
+// OPTIMASI: Menambahkan tipe 'tween' agar tidak menggunakan kalkulasi 'spring' default yang berat
 const formContainerVariants = {
     hidden: { opacity: 0, x: 20 },
     visible: {
         opacity: 1, x: 0,
-        transition: { duration: 0.6, ease: "easeOut", staggerChildren: 0.1 }
+        transition: { 
+            type: "tween", 
+            duration: 0.4, // Sedikit dipercepat agar terasa lebih responsif
+            ease: "easeOut", 
+            staggerChildren: 0.05 // Jarak stagger diperkecil agar tidak ada delay lama
+        }
     }
 };
 
 const itemVariants = {
     hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 }
+    visible: { 
+        opacity: 1, 
+        y: 0,
+        transition: { type: "tween", duration: 0.3, ease: "easeOut" }
+    }
+};
+
+// OPTIMASI: Variants untuk elemen yang menggunakan height: 'auto'
+// Animasi height sangat berat karena memicu "Layout Reflow" di browser. Kita paksakan pakai tween simpel.
+const collapseVariants = {
+    hidden: { opacity: 0, height: 0, transition: { type: "tween", duration: 0.2, ease: "easeIn" } },
+    visible: { opacity: 1, height: 'auto', transition: { type: "tween", duration: 0.25, ease: "easeOut" } }
 };
 
 // --- 3. Main Auth Page Component ---
@@ -131,7 +148,6 @@ export default function AuthPage() {
             const errorMessage = err.response?.data?.error || err.message || 'An unexpected error occurred. Please try again later.';
             const errLower = errorMessage.toLowerCase();
 
-            // Lakukan pencocokan string dari error bawaan Supabase
             if (errLower.includes('invalid login credentials')) {
                 setError('Incorrect credentials. Please verify your email and password.');
             }
@@ -145,7 +161,6 @@ export default function AuthPage() {
                 setError('Password is too short. It must contain at least 6 characters.');
             }
             else {
-                // Menampilkan error dari backend, pastikan format awalnya huruf kapital (opsional tapi bagus untuk UI)
                 setError(errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1));
             }
         } finally {
@@ -209,7 +224,8 @@ export default function AuthPage() {
                                 left: mode === 'login' ? '4px' : '50%',
                                 right: mode === 'login' ? '50%' : '4px',
                             }}
-                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                            // OPTIMASI: Ganti spring yang berat kalkulasinya dengan tween simple
+                            transition={{ type: "tween", duration: 0.25, ease: "easeInOut" }}
                         />
                         <button
                             type="button"
@@ -231,20 +247,22 @@ export default function AuthPage() {
                         <AnimatePresence mode="wait">
                             {error && (
                                 <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="p-2 lg:p-3 rounded-lg bg-red-50 text-red-600 text-[10px] lg:text-sm flex items-center gap-2 border border-red-100 overflow-hidden"
+                                    variants={collapseVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="hidden"
+                                    className="p-2 lg:p-3 rounded-lg bg-red-50 text-red-600 text-[10px] lg:text-sm flex items-center gap-2 border border-red-100 overflow-hidden style={{ willChange: 'opacity, height' }}"
                                 >
                                     <AlertCircle size={14} className="shrink-0" /> {error}
                                 </motion.div>
                             )}
                             {success && (
                                 <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="p-2 lg:p-3 rounded-lg bg-emerald-50 text-emerald-600 text-[10px] lg:text-sm flex items-center gap-2 border border-emerald-100 overflow-hidden"
+                                    variants={collapseVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="hidden"
+                                    className="p-2 lg:p-3 rounded-lg bg-emerald-50 text-emerald-600 text-[10px] lg:text-sm flex items-center gap-2 border border-emerald-100 overflow-hidden style={{ willChange: 'opacity, height' }}"
                                 >
                                     <CheckCircle size={14} className="shrink-0" /> {success}
                                 </motion.div>
@@ -296,10 +314,11 @@ export default function AuthPage() {
                             <AnimatePresence>
                                 {mode === 'register' && (
                                     <motion.div
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        className="overflow-hidden group"
+                                        variants={collapseVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="hidden"
+                                        className="overflow-hidden group style={{ willChange: 'opacity, height' }}"
                                     >
                                         <label className="block text-[9px] lg:text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1 ml-1 pt-1.5 lg:pt-2">
                                             Confirm Password
@@ -323,6 +342,7 @@ export default function AuthPage() {
 
                         <motion.button
                             variants={itemVariants}
+                            // OPTIMASI: scale animation di hover/tap cukup ringan karena pakai transform
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.99 }}
                             type="submit"

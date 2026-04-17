@@ -68,10 +68,19 @@ const BiometricBubbleIllustrator = () => {
     );
 };
 
+// OPTIMASI: Ganti 'spring' yang berat kalkulasinya dengan 'tween' yang jauh lebih ringan dan mulus
 const itemVariants = {
     hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50, damping: 20 } },
-    exit: { opacity: 0, y: -15, transition: { duration: 0.2 } }
+    visible: { 
+        opacity: 1, 
+        y: 0, 
+        transition: { type: "tween", duration: 0.35, ease: "easeOut" } 
+    },
+    exit: { 
+        opacity: 0, 
+        y: -15, 
+        transition: { type: "tween", duration: 0.2, ease: "easeIn" } 
+    }
 };
 
 const IntroModal = ({ isOpen, onClose }) => {
@@ -163,12 +172,13 @@ const IntroModal = ({ isOpen, onClose }) => {
         <AnimatePresence>
             {isOpen && (
                 <motion.div 
-                    initial={{ opacity: 0, y: "100vh" }} // Pakai 100vh lebih aman buat mobile
+                    // OPTIMASI: Ganti y: "100vh" menjadi y: "100%"
+                    // 100vh di HP memicu kalkulasi ulang browser tiap kali address bar muncul/hilang (Layout Thrashing). 100% menggunakan ukuran relatif elemen, jauh lebih ringan.
+                    initial={{ opacity: 0, y: "100%" }} 
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: "100vh" }}
-                    // PERUBAHAN UTAMA: Ganti animasi dari spring ke tween dengan ease curve super smooth
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} 
-                    // Tambahan will-change-transform biar GPU bantu ngerender pergerakan slide
+                    exit={{ opacity: 0, y: "100%" }}
+                    // Sedikit dipercepat (0.5) agar feels responsif tapi tetap punya kurva easing yang sama nyamannya
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} 
                     className="fixed inset-0 z-[100] h-[100dvh] w-full bg-white text-zinc-950 flex flex-col items-center justify-between p-4 md:p-6 overflow-hidden font-sans selection:bg-zinc-200 selection:text-zinc-900 will-change-transform"
                 >
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-zinc-100 rounded-full blur-[100px] pointer-events-none" />
@@ -176,7 +186,13 @@ const IntroModal = ({ isOpen, onClose }) => {
                     <div className="max-w-4xl w-full flex-grow flex flex-col items-center justify-center z-10">
                         <AnimatePresence mode="wait">
                             <motion.div 
-                                key={step} variants={itemVariants} initial="hidden" animate="visible" exit="exit"
+                                key={step} 
+                                variants={itemVariants} 
+                                initial="hidden" 
+                                animate="visible" 
+                                exit="exit"
+                                // OPTIMASI: delegasi layer komposisi ke GPU saat ganti step
+                                style={{ willChange: "opacity, transform" }}
                                 className="w-full flex flex-col items-center text-center space-y-4 md:space-y-8"
                             >
                                 <div className="space-y-2 md:space-y-4 w-full flex flex-col items-center">
@@ -197,7 +213,15 @@ const IntroModal = ({ isOpen, onClose }) => {
                                 {step === 1 && (
                                     <div className="w-full max-w-4xl flex flex-col md:grid md:grid-cols-3 gap-2 md:gap-6 pt-2 md:pt-4 px-2">
                                         {features.map((item, idx) => (
-                                            <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1, duration: 0.4 }} className="group relative bg-zinc-50/80 rounded-xl md:rounded-3xl border border-zinc-100 hover:border-zinc-300 transition-all duration-300 flex flex-row md:flex-col items-center md:items-start p-3 md:p-8 text-left gap-3 md:gap-0">
+                                            <motion.div 
+                                                key={idx} 
+                                                initial={{ opacity: 0, y: 10 }} 
+                                                animate={{ opacity: 1, y: 0 }} 
+                                                // OPTIMASI: Pastikan stagger pakai tween biasa, dan paksa GPU rendering via willChange
+                                                transition={{ delay: idx * 0.1, duration: 0.35, type: "tween", ease: "easeOut" }} 
+                                                style={{ willChange: "opacity, transform" }}
+                                                className="group relative bg-zinc-50/80 rounded-xl md:rounded-3xl border border-zinc-100 hover:border-zinc-300 transition-all duration-300 flex flex-row md:flex-col items-center md:items-start p-3 md:p-8 text-left gap-3 md:gap-0"
+                                            >
                                                 <div className="p-2.5 md:p-4 bg-white rounded-lg md:rounded-2xl shrink-0 md:mb-5 border border-zinc-100 shadow-sm">
                                                     {item.icon}
                                                 </div>
