@@ -11,7 +11,11 @@ import {
     Activity,
     Layers,
     ChevronRight,
-    ChevronLeft
+    ChevronLeft,
+    Camera,
+    ScanSearch,
+    MessageSquare,
+    LayoutDashboard
 } from 'lucide-react';
 import { ROUTES } from '../config';
 
@@ -89,9 +93,11 @@ const IntroModal = ({ isOpen, onClose }) => {
     const [isPopping, setIsPopping] = useState(false);
     const utteranceRef = useRef(null); 
 
+    // Penambahan step data untuk tutorial (Step 2)
     const stepData = [
         { title: "System initialized.", subtitle: "Preparing high-precision facial skin analysis...", spoken: "System initialized. Preparing high-precision facial skin analysis." },
         { title: "Advanced Biometric AI", subtitle: "Powered by cutting-edge technology for absolute precision.", spoken: "Our advanced architecture utilizes Region-Aware Voting, Explainable A I, and Real-Time Processing to guarantee accuracy." },
+        { title: "Cara Penggunaan", subtitle: "Ikuti panduan langkah demi langkah ini untuk memulai analisis kulit Anda.", spoken: "Here is how to use the system. Scan your face, review the heatmaps, chat with our A I for ingredient details, and save your progress." },
         { title: "Ready to Start", subtitle: "Choose how you would like to proceed.", spoken: "Please select an option to continue. Authenticate to save your history, or proceed with a Quick Scan as a guest." }
     ];
 
@@ -99,6 +105,30 @@ const IntroModal = ({ isOpen, onClose }) => {
         { icon: <Layers className="w-4 h-4 md:w-5 md:h-5 text-zinc-800" />, title: "Region-Aware Voting", desc: "Patch-based texture extraction aggregated through region-specific weighting." },
         { icon: <Cpu className="w-4 h-4 md:w-5 md:h-5 text-zinc-800" />, title: "Explainable AI", desc: "Transparent Grad-CAM heatmaps reveal the exact micro-features driving diagnosis." },
         { icon: <Activity className="w-4 h-4 md:w-5 md:h-5 text-zinc-800" />, title: "Real-Time Processing", desc: "Seamless edge-level inference ensuring your data is processed swiftly." }
+    ];
+
+    // Data konten tutorial
+    const tutorials = [
+        {
+            icon: <Camera className="w-4 h-4 md:w-5 md:h-5" />,
+            title: "1. Buka Kamera & Pindai",
+            desc: "Arahkan wajah ke kamera dan lanjutkan analisis. Tunggu sejenak sementara AI memproses struktur wajah Anda."
+        },
+        {
+            icon: <ScanSearch className="w-4 h-4 md:w-5 md:h-5" />,
+            title: "2. Hasil & Heatmap",
+            desc: "Lihat hasil diagnosis yang dilengkapi dengan Grad-CAM heatmap untuk menyorot area spesifik deteksi model."
+        },
+        {
+            icon: <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />,
+            title: "3. Rekomendasi & Chat AI",
+            desc: "Dapatkan rekomendasi bahan aktif. Klik 'See Detail' pada bahan aktif untuk chat interaktif dengan AI mengenai fungsinya."
+        },
+        {
+            icon: <LayoutDashboard className="w-4 h-4 md:w-5 md:h-5" />,
+            title: "4. Akses Dashboard",
+            desc: "Untuk menyimpan riwayat analisis dan masuk ke dashboard personal, silakan login atau daftar terlebih dahulu."
+        }
     ];
 
     useEffect(() => {
@@ -165,19 +195,16 @@ const IntroModal = ({ isOpen, onClose }) => {
         };
     }, [step, isOpen]); 
 
-    const handleNext = () => setStep((prev) => Math.min(prev + 1, 2));
+    const handleNext = () => setStep((prev) => Math.min(prev + 1, 3)); // Update max step
     const handlePrev = () => setStep((prev) => Math.max(prev - 1, 0));
 
     return (
         <AnimatePresence>
             {isOpen && (
                 <motion.div 
-                    // OPTIMASI: Ganti y: "100vh" menjadi y: "100%"
-                    // 100vh di HP memicu kalkulasi ulang browser tiap kali address bar muncul/hilang (Layout Thrashing). 100% menggunakan ukuran relatif elemen, jauh lebih ringan.
                     initial={{ opacity: 0, y: "100%" }} 
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: "100%" }}
-                    // Sedikit dipercepat (0.5) agar feels responsif tapi tetap punya kurva easing yang sama nyamannya
                     transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} 
                     className="fixed inset-0 z-[100] h-[100dvh] w-full bg-white text-zinc-950 flex flex-col items-center justify-between p-4 md:p-6 overflow-hidden font-sans selection:bg-zinc-200 selection:text-zinc-900 will-change-transform"
                 >
@@ -191,7 +218,6 @@ const IntroModal = ({ isOpen, onClose }) => {
                                 initial="hidden" 
                                 animate="visible" 
                                 exit="exit"
-                                // OPTIMASI: delegasi layer komposisi ke GPU saat ganti step
                                 style={{ willChange: "opacity, transform" }}
                                 className="w-full flex flex-col items-center text-center space-y-4 md:space-y-8"
                             >
@@ -210,6 +236,7 @@ const IntroModal = ({ isOpen, onClose }) => {
                                     </p>
                                 </div>
 
+                                {/* Step 1: Features */}
                                 {step === 1 && (
                                     <div className="w-full max-w-4xl flex flex-col md:grid md:grid-cols-3 gap-2 md:gap-6 pt-2 md:pt-4 px-2">
                                         {features.map((item, idx) => (
@@ -217,7 +244,6 @@ const IntroModal = ({ isOpen, onClose }) => {
                                                 key={idx} 
                                                 initial={{ opacity: 0, y: 10 }} 
                                                 animate={{ opacity: 1, y: 0 }} 
-                                                // OPTIMASI: Pastikan stagger pakai tween biasa, dan paksa GPU rendering via willChange
                                                 transition={{ delay: idx * 0.1, duration: 0.35, type: "tween", ease: "easeOut" }} 
                                                 style={{ willChange: "opacity, transform" }}
                                                 className="group relative bg-zinc-50/80 rounded-xl md:rounded-3xl border border-zinc-100 hover:border-zinc-300 transition-all duration-300 flex flex-row md:flex-col items-center md:items-start p-3 md:p-8 text-left gap-3 md:gap-0"
@@ -234,7 +260,32 @@ const IntroModal = ({ isOpen, onClose }) => {
                                     </div>
                                 )}
 
+                                {/* Step 2: Tutorial / Cara Penggunaan */}
                                 {step === 2 && (
+                                    <div className="w-full max-w-3xl flex flex-col sm:grid sm:grid-cols-2 gap-3 md:gap-5 pt-2 md:pt-4 px-2">
+                                        {tutorials.map((item, idx) => (
+                                            <motion.div 
+                                                key={idx} 
+                                                initial={{ opacity: 0, y: 10 }} 
+                                                animate={{ opacity: 1, y: 0 }} 
+                                                transition={{ delay: idx * 0.1, duration: 0.35, type: "tween", ease: "easeOut" }} 
+                                                style={{ willChange: "opacity, transform" }}
+                                                className="group relative bg-zinc-50/80 rounded-xl md:rounded-2xl border border-zinc-100 hover:border-zinc-300 transition-all duration-300 flex items-start p-3 md:p-5 text-left gap-3 md:gap-4 shadow-sm hover:shadow-md"
+                                            >
+                                                <div className="p-2.5 md:p-3 bg-white rounded-lg md:rounded-xl shrink-0 border border-zinc-100 shadow-sm text-zinc-800">
+                                                    {item.icon}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h4 className="font-medium text-sm md:text-base text-zinc-900 mb-0.5 md:mb-1">{item.title}</h4>
+                                                    <p className="text-[11px] md:text-xs text-zinc-500 font-light leading-relaxed">{item.desc}</p>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Step 3: Auth Selection */}
+                                {step === 3 && (
                                     <div className="w-full max-w-2xl flex flex-col sm:grid sm:grid-cols-2 gap-3 md:gap-5 pt-4 px-2">
                                         <button onClick={() => navigate(ROUTES.LOGIN)} className="group relative flex items-center justify-between p-4 md:p-6 bg-zinc-900 rounded-xl md:rounded-3xl border border-zinc-800 text-white hover:bg-black transition-all duration-300">
                                             <div className="text-left flex flex-col justify-center">
@@ -269,12 +320,13 @@ const IntroModal = ({ isOpen, onClose }) => {
                         </button>
                         
                         <div className="flex gap-2">
-                            {[0, 1, 2].map((dot) => (
+                            {/* Update dot indikator menjadi 4 titik */}
+                            {[0, 1, 2, 3].map((dot) => (
                                 <div key={dot} className={`h-1.5 rounded-full transition-all duration-500 ${step === dot ? 'bg-zinc-800 w-6 md:w-8' : 'bg-zinc-200 w-1.5 md:w-2'}`} />
                             ))}
                         </div>
                         
-                        <button onClick={handleNext} disabled={step === 0 || step === 2} className={`flex items-center gap-1.5 md:gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full text-xs md:text-sm font-medium transition-all ${step === 0 || step === 2 ? 'opacity-0 pointer-events-none' : 'bg-zinc-900 text-white hover:bg-black shadow-md'}`}>
+                        <button onClick={handleNext} disabled={step === 0 || step === 3} className={`flex items-center gap-1.5 md:gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full text-xs md:text-sm font-medium transition-all ${step === 0 || step === 3 ? 'opacity-0 pointer-events-none' : 'bg-zinc-900 text-white hover:bg-black shadow-md'}`}>
                             Next <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         </button>
                     </div>
