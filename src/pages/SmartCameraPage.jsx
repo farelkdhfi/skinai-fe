@@ -8,6 +8,8 @@ import {
     AlertCircle, Loader2,
     ImageIcon, ArrowLeft, Aperture
 } from 'lucide-react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Sphere } from '@react-three/drei';
 
 import { useAnalysis } from '../context/AnalysisContext';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +21,51 @@ import ScanOverlay from '../components/ScanOverlay';
 import GuidanceOverlay from '../components/GuidanceOverlay';
 import StatusGrid from '../components/StatusGrid';
 
+// --- Komponen 3D Animasi Sparkles ---
+const AnimatedSparkles = () => {
+    const groupRef = useRef();
+
+    useFrame((state) => {
+        const t = state.clock.elapsedTime;
+        // Animasi menyatu (0.0) dan memisah (hingga ~0.45 agar tidak terpotong di mobile) secara loop
+        const spread = (Math.sin(t * 2) + 1) / 2 * 0.45;
+
+        if (groupRef.current) {
+            // Putaran keseluruhan grup untuk efek swirl yang elegan
+            groupRef.current.rotation.y = t * 1.5;
+            groupRef.current.rotation.x = t * 0.8;
+            groupRef.current.rotation.z = t * 0.5;
+
+            // Distribusi 5 sparkles
+            groupRef.current.children.forEach((child, i) => {
+                const angle = i * ((Math.PI * 2) / 5);
+                child.position.x = Math.cos(angle) * spread;
+                child.position.y = Math.sin(angle) * spread;
+                // Tambahan dimensi Z agar gerakan lebih natural
+                child.position.z = Math.sin(t * 3 + i) * 0.4 * spread;
+            });
+        }
+    });
+
+    // 5 Sparkles: 3 Dominan hitam/gelap, 2 Warna soft (soft purple, soft teal)
+    const colors = ['#09090b', '#18181b', '#27272a', '#e9d5ff', '#ccfbf1'];
+
+    return (
+        <group ref={groupRef}>
+            {colors.map((color, i) => (
+                <Sphere key={i} args={[0.06, 32, 32]}>
+                    <meshStandardMaterial 
+                        color={color} 
+                        roughness={0.1} 
+                        metalness={0.9} 
+                        emissive={i > 2 ? color : '#000000'}
+                        emissiveIntensity={i > 2 ? 0.5 : 0}
+                    />
+                </Sphere>
+            ))}
+        </group>
+    );
+};
 
 export default function SmartCameraPage({ initialMode = 'camera' }) {
     const navigate = useNavigate();
@@ -471,34 +518,6 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                             isAnalyzing={isAnalyzing}
                             capturedFrame={capturedFrame}
                         />
-
-                        {/* LOADING STATES DENGAN DYNAMIC TEXT */}
-                        <AnimatePresence>
-                            {(!modelLoaded || isAnalyzing) && (
-                                <motion.div
-                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                    className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md"
-                                >
-                                    <Loader2 className="w-8 h-8 md:w-10 md:h-10 text-white/90 animate-spin mb-4 md:mb-5" strokeWidth={1} />
-
-                                    {/* Dynamic Text Container */}
-                                    <div className="h-6 overflow-hidden relative w-full flex justify-center">
-                                        <AnimatePresence mode="wait">
-                                            <motion.span
-                                                key={isAnalyzing ? loadingTextIdx : 'init'}
-                                                initial={{ y: 20, opacity: 0 }}
-                                                animate={{ y: 0, opacity: 1 }}
-                                                exit={{ y: -20, opacity: 0 }}
-                                                transition={{ duration: 0.3 }}
-                                                className="absolute text-[10px] md:text-xs font-light tracking-[0.3em] text-white/90 uppercase text-center"
-                                            >
-                                                {isAnalyzing ? loadingPhrases[loadingTextIdx] : 'Initializing AI'}
-                                            </motion.span>
-                                        </AnimatePresence>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                     </div>
                 </div>
             </div>
@@ -577,7 +596,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                         </p>
                     </div>
 
-                    {/* Dynamic Controls - PERBAIKAN SPACING DI SINI */}
+                    {/* Dynamic Controls */}
                     <div className={`flex flex-col items-center w-full max-w-sm md:max-w-md ${mode === 'camera' ? 'gap-6 md:gap-8' : 'gap-5 md:gap-6'}`}>
 
                         {/* 1. Validation Grid */}
@@ -650,6 +669,44 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                     </div>
                 </div>
             </div>
+
+            {/* FULL SCREEN LOADING UI WITH 3D ELEMENT */}
+            <AnimatePresence>
+                {(!modelLoaded || isAnalyzing) && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-white"
+                    >
+                        {/* New Elegant Sparkles Element */}
+                        <div className="w-64 h-64 md:w-80 md:h-80 mb-2 cursor-pointer flex items-center justify-center">
+                            <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
+                                <ambientLight intensity={1.5} />
+                                <directionalLight position={[5, 5, 5]} intensity={2} />
+                                <directionalLight position={[-5, -5, -5]} intensity={1} color="#ffffff" />
+                                <AnimatedSparkles />
+                            </Canvas>
+                        </div>
+
+                        {/* Dynamic Text Container */}
+                        <div className="h-6 overflow-hidden relative w-full flex justify-center">
+                            <AnimatePresence mode="wait">
+                                <motion.span
+                                    key={isAnalyzing ? loadingTextIdx : 'init'}
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    exit={{ y: -20, opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="absolute text-[10px] md:text-xs font-bold tracking-[0.3em] text-zinc-900 uppercase text-center"
+                                >
+                                    {isAnalyzing ? loadingPhrases[loadingTextIdx] : 'Initializing AI Model'}
+                                </motion.span>
+                            </AnimatePresence>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Error Modal (Polished) */}
             <AnimatePresence>

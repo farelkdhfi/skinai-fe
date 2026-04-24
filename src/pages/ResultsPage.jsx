@@ -33,6 +33,25 @@ const itemVariants = {
     }
 };
 
+// Varian animasi intro yang sangat elegan, smooth, dan premium
+const introVariants = {
+    initial: { opacity: 0, scale: 0.97, filter: "blur(12px)", y: 10 },
+    animate: { 
+        opacity: 1, 
+        scale: 1, 
+        filter: "blur(0px)", 
+        y: 0, 
+        transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] } // Ultra smooth deceleration
+    },
+    exit: { 
+        opacity: 0, 
+        scale: 1.03, 
+        filter: "blur(8px)", 
+        y: -10, 
+        transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
+    }
+};
+
 export default function ResultsPage() {
     const navigate = useNavigate();
     const { results, patches, recommendations, saveToHistory } = useAnalysis();
@@ -44,6 +63,10 @@ export default function ResultsPage() {
     const [showHeatmap, setShowHeatmap] = useState(true);
     const [selectedIngredient, setSelectedIngredient] = useState(null);
 
+    // State untuk Intro Sequence Animasi
+    const [introStage, setIntroStage] = useState(1);
+    const [introComplete, setIntroComplete] = useState(false);
+
     const { user, session } = useAuth();
 
     // Redirect if no results
@@ -53,9 +76,24 @@ export default function ResultsPage() {
         }
     }, [results, navigate]);
 
-    // Mencegah scroll body saat modal terbuka
+    // Intro Sequence Effect - Durasi diperpanjang agar user bisa membaca teks makna
     useEffect(() => {
-        if (selectedIngredient) {
+        if (!results) return;
+        
+        const t1 = setTimeout(() => setIntroStage(2), 3500);
+        const t2 = setTimeout(() => setIntroStage(3), 7000);
+        const t3 = setTimeout(() => setIntroStage(4), 10500);
+        const t4 = setTimeout(() => setIntroStage(5), 14000); // Transisi keluar overlay
+        const t5 = setTimeout(() => setIntroComplete(true), 15000); // Intro selesai sepenuhnya
+
+        return () => {
+            clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5);
+        };
+    }, [results]);
+
+    // Mencegah scroll body saat modal terbuka ATAU intro belum selesai
+    useEffect(() => {
+        if (selectedIngredient || !introComplete) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
@@ -63,7 +101,7 @@ export default function ResultsPage() {
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [selectedIngredient]);
+    }, [selectedIngredient, introComplete]);
 
     if (!results) return null;
 
@@ -73,6 +111,7 @@ export default function ResultsPage() {
     const colors = DIAGNOSIS_COLORS[diagnosis] || DIAGNOSIS_COLORS.Normal;
 
     const originalFullImage = patches['full_image'] || patches['camera_capture'] || patches['single_patch'];
+    const patchCount = results.predictions?.length || 4;
 
     const handleSave = async () => {
         if (isSaved || isSaving) return;
@@ -92,260 +131,392 @@ export default function ResultsPage() {
 
     return (
         <div className="min-h-screen bg-white text-zinc-950 pb-36 sm:pb-32 md:pb-24 relative">
-            <Header />
-
-            <motion.main
-                className="max-w-5xl mx-auto px-4 md:px-6 pt-24 sm:pt-28 md:pt-36 pb-8 md:pb-12"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-            >
-                {/* --- Top Nav --- */}
-                <motion.div variants={itemVariants} className="flex items-center justify-between mb-8 sm:mb-10 md:mb-16">
-                    <Link to={ROUTES.ANALYZE} className="group inline-flex items-center text-zinc-400 hover:text-zinc-900 transition-colors">
-                        <ArrowLeft className="w-4 h-4 mr-2 sm:mr-2.5 group-hover:-translate-x-1.5 transition-transform" />
-                        <span className="text-xs sm:text-sm font-medium">Discard & Return</span>
-                    </Link>
-                    <div className="text-[9px] sm:text-[10px] md:text-xs font-medium text-zinc-300 uppercase tracking-widest text-right">
-                        Analysis Complete
-                    </div>
-                </motion.div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 md:gap-16 mb-12 sm:mb-16 md:mb-24">
-                    {/* --- Left Column: Diagnosis Headline --- */}
-                    <div className="lg:col-span-5 space-y-6 sm:space-y-8 md:space-y-10 lg:pt-6">
-                        <motion.div variants={itemVariants} className="relative">
-                            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-zinc-50 border border-zinc-200 text-[10px] sm:text-xs font-medium text-zinc-500 mb-5 md:mb-8">
-                                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-500" />
-                                AI Diagnosis
-                            </div>
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium tracking-tighter text-zinc-900 mb-4 md:mb-6 leading-[1.1] sm:leading-[0.95] md:leading-[0.9]">
-                                {diagnosis}
-                            </h1>
-                            <p className="text-sm sm:text-base md:text-lg text-zinc-500 font-light leading-relaxed max-w-xl lg:max-w-none">
-                                Our deep learning model identified this condition based on texture, oiliness, and pore analysis.
-                            </p>
-                        </motion.div>
-
-                        <motion.div variants={itemVariants} className="flex items-center gap-4 sm:gap-5 md:gap-7 pt-6 sm:pt-8 border-t border-zinc-100">
-                            <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-18 md:h-18 lg:w-20 lg:h-20 shrink-0">
-                                <svg className="w-full h-full transform -rotate-90">
-                                    <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-zinc-100" />
-                                    <circle
-                                        cx="50%" cy="50%" r="45%"
-                                        stroke="currentColor" strokeWidth="5" fill="transparent"
-                                        strokeDasharray={`${confidence * 280} 280`}
-                                        className={`${colors.text.replace('text-', 'text-')}`}
-                                    />
-                                </svg>
-                                <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                    <span className="text-xs sm:text-sm md:text-base font-bold text-zinc-900">{(confidence * 100).toFixed(0)}%</span>
-                                </div>
-                            </div>
-                            <div>
-                                <h3 className="font-medium text-zinc-900 text-sm md:text-base">Confidence Score</h3>
-                                <div className="text-[10px] sm:text-xs md:text-sm text-zinc-400 font-light flex items-center gap-1.5 mt-1 sm:mt-1.5">
-                                    <Info className="w-3.5 h-3.5 shrink-0" />
-                                    <span className="truncate max-w-[150px] sm:max-w-[200px]">Method: {votingMethod}</span>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-
-                    {/* --- Right Column: Visuals --- */}
-                    <div className="lg:col-span-7">
-                        <div className="space-y-8 md:space-y-12">
-                            {/* --- Area Foto/Heatmap --- */}
-                            {results.cfcm_image && (
-                                <motion.div variants={itemVariants}>
-                                    <div className="flex items-baseline justify-between mb-4 sm:mb-6 md:mb-8">
-                                        <h3 className="text-sm sm:text-base md:text-lg font-medium text-zinc-900">Composite Condition Map</h3>
-                                        <span className="text-[9px] sm:text-[10px] md:text-xs text-zinc-400 font-light uppercase tracking-wider">Holistic View</span>
+            
+            {/* --- Elegant Intro Animation Overlay --- */}
+            <AnimatePresence>
+                {!introComplete && (
+                    <motion.div
+                        className="fixed inset-0 z-[999] bg-white/95 backdrop-blur-2xl flex flex-col items-center justify-center overflow-hidden"
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0, transition: { duration: 1.2, ease: "easeInOut" } }}
+                    >
+                        <AnimatePresence mode="wait">
+                            {introStage === 1 && (
+                                <motion.div
+                                    key="stage1"
+                                    variants={introVariants}
+                                    initial="initial"
+                                    animate="animate"
+                                    exit="exit"
+                                    className="flex flex-col items-center text-center px-6 max-w-2xl"
+                                >
+                                    <div className="text-zinc-400 text-[9px] sm:text-[10px] font-medium tracking-[0.3em] uppercase mb-8">
+                                        Clinical Analysis Complete
                                     </div>
-                                    <div className="relative bg-zinc-100 rounded-[1.5rem] sm:rounded-3xl md:rounded-[2.5rem] overflow-hidden border border-zinc-200 shadow-sm aspect-square flex items-center justify-center">
-                                        {originalFullImage && (
-                                            <img 
-                                                src={originalFullImage} 
-                                                alt="Original Facial Map" 
-                                                className="w-full h-full object-cover absolute inset-0" 
-                                            />
-                                        )}
-                                        <img
-                                            src={results.cfcm_image}
-                                            alt="Composite Facial Condition Map"
-                                            className={`w-full h-full object-cover relative z-10 transition-opacity duration-500 ${showHeatmap ? 'opacity-100' : 'opacity-0'}`}
-                                        />
-                                        <div className={`absolute bottom-3 right-3 sm:bottom-5 sm:right-5 px-3 py-1.5 sm:px-4 sm:py-2 bg-black/50 backdrop-blur text-white text-[9px] sm:text-[10px] md:text-xs font-medium rounded-full border border-white/10 shadow-lg transition-opacity duration-500 z-20 ${showHeatmap ? 'opacity-100' : 'opacity-0'}`}>
-                                            Grad-CAM Overlay
+                                    
+                                    <h2 className="text-5xl sm:text-6xl md:text-7xl font-light tracking-tight text-zinc-900 mb-6 capitalize leading-none">
+                                        {diagnosis}
+                                    </h2>
+
+                                    <p className="text-zinc-500 text-xs sm:text-sm font-light leading-relaxed mb-10 px-4">
+                                        Our deep learning architecture has processed your dermal topography with high certainty, identifying the predominant skin condition profile.
+                                    </p>
+                                    
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className="text-zinc-400 text-[9px] sm:text-[10px] font-medium tracking-[0.2em] uppercase">
+                                            Algorithmic Confidence
+                                        </div>
+                                        <div className="text-6xl sm:text-7xl md:text-8xl font-extralight tracking-tighter text-zinc-800">
+                                            {(confidence * 100).toFixed(0)}<span className="text-3xl sm:text-4xl font-light text-zinc-300 ml-1">%</span>
                                         </div>
                                     </div>
                                 </motion.div>
                             )}
-
-                            {results.predictions?.length === 1 && (results.predictions[0].region === 'full_image' || results.predictions[0].region === 'single_patch') ? (
-                                <motion.div variants={itemVariants}>
-                                    <SingleImageCard
-                                        item={results.predictions[0]}
-                                        patch={patches[results.predictions[0].region] || originalFullImage}
-                                        heatmap={results.gradcam_heatmaps?.[results.predictions[0].region]}
-                                        showHeatmap={showHeatmap}
-                                    />
-                                </motion.div>
-                            ) : (
-                                <motion.div variants={itemVariants}>
-                                    <div className="flex items-baseline justify-between mb-4 sm:mb-6 md:mb-8">
-                                        <h3 className="text-sm sm:text-base md:text-lg font-medium text-zinc-900">Regional Analysis</h3>
-                                        <span className="text-[9px] sm:text-[10px] md:text-xs text-zinc-400 font-light uppercase tracking-wider">Micro-texture Features</span>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+                            {introStage === 2 && (
+                                <motion.div
+                                    key="stage2"
+                                    variants={introVariants}
+                                    initial="initial"
+                                    animate="animate"
+                                    exit="exit"
+                                    className="flex flex-col items-center w-full max-w-3xl px-6 text-center"
+                                >
+                                    <h3 className="text-zinc-900 text-xl sm:text-2xl font-light tracking-wide mb-3">Micro-Texture Extraction</h3>
+                                    <p className="text-zinc-500 text-xs sm:text-sm font-light max-w-md leading-relaxed mb-10">
+                                        Successfully isolated {patchCount} critical dermal regions. Evaluating structural irregularities, pore fidelity, and localized variations.
+                                    </p>
+                                    <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
                                         {results.predictions?.map((item, idx) => (
-                                            <PatchCard
-                                                key={idx}
-                                                item={item}
-                                                patch={patches[item.region]}
-                                                heatmap={results.gradcam_heatmaps?.[item.region]}
-                                                showHeatmap={showHeatmap}
-                                            />
+                                            <motion.div 
+                                                key={idx} 
+                                                initial={{ opacity: 0, scale: 0.9, filter: "blur(5px)" }} 
+                                                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }} 
+                                                transition={{ delay: idx * 0.2, duration: 1, ease: [0.16, 1, 0.3, 1] }} 
+                                                className="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden border border-zinc-200/40 shadow-sm bg-zinc-50 relative"
+                                            >
+                                                <img src={patches[item.region]} alt={item.region} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 border border-zinc-900/10 rounded-2xl"></div>
+                                            </motion.div>
                                         ))}
                                     </div>
                                 </motion.div>
                             )}
-
-                            {/* --- Heatmap Toggle Relocated Here (Lebih Strategis) --- */}
-                            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 bg-zinc-50 border border-zinc-100 rounded-[1.25rem] sm:rounded-[1.5rem]">
-                                <div>
-                                    <h4 className="text-[11px] sm:text-xs font-bold text-zinc-900 uppercase tracking-widest flex items-center gap-2">
-                                        <Eye className="w-3.5 h-3.5 text-zinc-500" />
-                                        Visual Controls
-                                    </h4>
-                                    <p className="text-[10px] sm:text-[11px] text-zinc-500 mt-1">Toggle to see exactly what the AI sees</p>
-                                </div>
-                                <button
-                                    onClick={() => setShowHeatmap(!showHeatmap)}
-                                    className={`relative flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs font-medium rounded-full transition-all shadow-sm w-full sm:w-auto ${
-                                        showHeatmap 
-                                            ? 'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-md' 
-                                            : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50'
-                                    }`}
+                            {introStage === 3 && (
+                                <motion.div
+                                    key="stage3"
+                                    variants={introVariants}
+                                    initial="initial"
+                                    animate="animate"
+                                    exit="exit"
+                                    className="flex flex-col items-center w-full max-w-md px-6 text-center"
                                 >
-                                    {showHeatmap ? <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
-                                    {showHeatmap ? 'Hide AI Heatmap' : 'Show AI Heatmap'}
-                                </button>
+                                    <h3 className="text-zinc-900 text-xl sm:text-2xl font-light tracking-wide mb-3">Holistic Topography</h3>
+                                    <p className="text-zinc-500 text-xs sm:text-sm font-light leading-relaxed mb-10">
+                                        Synthesizing regional anomalies into a unified structural map to identify overarching distribution patterns.
+                                    </p>
+                                    <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-[2rem] overflow-hidden border border-zinc-200/50 shadow-xl shadow-zinc-200/40 relative bg-zinc-50">
+                                        <motion.img 
+                                            initial={{ scale: 1.05, filter: "contrast(0.9) grayscale(0.2)" }}
+                                            animate={{ scale: 1, filter: "contrast(1) grayscale(0)" }}
+                                            transition={{ duration: 3.5, ease: "easeOut" }}
+                                            src={results.cfcm_image || originalFullImage} 
+                                            alt="Full Facial View" 
+                                            className="w-full h-full object-cover absolute inset-0" 
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+                            {introStage === 4 && (
+                                <motion.div
+                                    key="stage4"
+                                    variants={introVariants}
+                                    initial="initial"
+                                    animate="animate"
+                                    exit="exit"
+                                    className="flex flex-col items-center w-full max-w-3xl px-6 text-center"
+                                >
+                                    <h3 className="text-zinc-900 text-xl sm:text-2xl font-light tracking-wide mb-3">Regimen Synthesis</h3>
+                                    <p className="text-zinc-500 text-xs sm:text-sm font-light max-w-md leading-relaxed mb-10">
+                                        Curating clinical-grade bio-active compounds precisely calibrated to neutralize the {diagnosis.toLowerCase()} condition state.
+                                    </p>
+                                    <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+                                        {recommendations?.primary_ingredients?.slice(0, 5).map((ing, idx) => (
+                                            <motion.div 
+                                                key={idx} 
+                                                initial={{ opacity: 0, y: 15, filter: "blur(4px)" }} 
+                                                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} 
+                                                transition={{ delay: idx * 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }} 
+                                                className="px-6 py-2.5 sm:px-7 sm:py-3 bg-white border border-zinc-200/60 rounded-full text-zinc-700 text-xs sm:text-sm font-medium shadow-sm flex items-center gap-2.5"
+                                            >
+                                                <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+                                                {ing.name}
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <Header />
+
+            {/* Mount the main content ONLY after intro is complete to trigger stagger animations smoothly */}
+            {introComplete && (
+                <motion.main
+                    className="max-w-5xl mx-auto px-4 md:px-6 pt-24 sm:pt-28 md:pt-36 pb-8 md:pb-12"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    {/* --- Top Nav --- */}
+                    <motion.div variants={itemVariants} className="flex items-center justify-between mb-8 sm:mb-10 md:mb-16">
+                        <Link to={ROUTES.ANALYZE} className="group inline-flex items-center text-zinc-400 hover:text-zinc-900 transition-colors">
+                            <ArrowLeft className="w-4 h-4 mr-2 sm:mr-2.5 group-hover:-translate-x-1.5 transition-transform" />
+                            <span className="text-xs sm:text-sm font-medium">Discard & Return</span>
+                        </Link>
+                        <div className="text-[9px] sm:text-[10px] md:text-xs font-medium text-zinc-300 uppercase tracking-widest text-right">
+                            Analysis Complete
+                        </div>
+                    </motion.div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 md:gap-16 mb-12 sm:mb-16 md:mb-24">
+                        {/* --- Left Column: Diagnosis Headline --- */}
+                        <div className="lg:col-span-5 space-y-6 sm:space-y-8 md:space-y-10 lg:pt-6">
+                            <motion.div variants={itemVariants} className="relative">
+                                <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-zinc-50 border border-zinc-200 text-[10px] sm:text-xs font-medium text-zinc-500 mb-5 md:mb-8">
+                                    <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-500" />
+                                    AI Diagnosis
+                                </div>
+                                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium tracking-tighter text-zinc-900 mb-4 md:mb-6 leading-[1.1] sm:leading-[0.95] md:leading-[0.9]">
+                                    {diagnosis}
+                                </h1>
+                                <p className="text-sm sm:text-base md:text-lg text-zinc-500 font-light leading-relaxed max-w-xl lg:max-w-none">
+                                    Our deep learning model identified this condition based on texture, oiliness, and pore analysis.
+                                </p>
+                            </motion.div>
+
+                            <motion.div variants={itemVariants} className="flex items-center gap-4 sm:gap-5 md:gap-7 pt-6 sm:pt-8 border-t border-zinc-100">
+                                <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-18 md:h-18 lg:w-20 lg:h-20 shrink-0">
+                                    <svg className="w-full h-full transform -rotate-90">
+                                        <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-zinc-100" />
+                                        <circle
+                                            cx="50%" cy="50%" r="45%"
+                                            stroke="currentColor" strokeWidth="5" fill="transparent"
+                                            strokeDasharray={`${confidence * 280} 280`}
+                                            className={`${colors.text.replace('text-', 'text-')}`}
+                                        />
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center flex-col">
+                                        <span className="text-xs sm:text-sm md:text-base font-bold text-zinc-900">{(confidence * 100).toFixed(0)}%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="font-medium text-zinc-900 text-sm md:text-base">Confidence Score</h3>
+                                    <div className="text-[10px] sm:text-xs md:text-sm text-zinc-400 font-light flex items-center gap-1.5 mt-1 sm:mt-1.5">
+                                        <Info className="w-3.5 h-3.5 shrink-0" />
+                                        <span className="truncate max-w-[150px] sm:max-w-[200px]">Method: {votingMethod}</span>
+                                    </div>
+                                </div>
                             </motion.div>
                         </div>
-                    </div>
-                </div>
 
-                {/* --- Recommendations Section --- */}
-                {recommendations && (
-                    <motion.section variants={itemVariants} className="border-t border-zinc-100 pt-10 md:pt-20">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 md:mb-14">
-                            <div className="flex gap-4">
-                                <span className="hidden sm:block w-2 h-9 bg-indigo-600 rounded-full shrink-0"></span>
-                                <div>
-                                    <div className="flex flex-wrap items-center gap-2.5">
-                                        <h2 className="text-lg sm:text-xl md:text-2xl font-medium text-zinc-900">Condition-Anchored Regimen</h2>
-                                        <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shrink-0">
-                                            <Network className="w-3.5 h-3.5" /> Semantic Clustering
-                                        </span>
+                        {/* --- Right Column: Visuals --- */}
+                        <div className="lg:col-span-7">
+                            <div className="space-y-8 md:space-y-12">
+                                {/* --- Area Foto/Heatmap --- */}
+                                {results.cfcm_image && (
+                                    <motion.div variants={itemVariants}>
+                                        <div className="flex items-baseline justify-between mb-4 sm:mb-6 md:mb-8">
+                                            <h3 className="text-sm sm:text-base md:text-lg font-medium text-zinc-900">Composite Condition Map</h3>
+                                            <span className="text-[9px] sm:text-[10px] md:text-xs text-zinc-400 font-light uppercase tracking-wider">Holistic View</span>
+                                        </div>
+                                        <div className="relative bg-zinc-100 rounded-[1.5rem] sm:rounded-3xl md:rounded-[2.5rem] overflow-hidden border border-zinc-200 shadow-sm aspect-square flex items-center justify-center">
+                                            {originalFullImage && (
+                                                <img 
+                                                    src={originalFullImage} 
+                                                    alt="Original Facial Map" 
+                                                    className="w-full h-full object-cover absolute inset-0" 
+                                                />
+                                            )}
+                                            <img
+                                                src={results.cfcm_image}
+                                                alt="Composite Facial Condition Map"
+                                                className={`w-full h-full object-cover relative z-10 transition-opacity duration-500 ${showHeatmap ? 'opacity-100' : 'opacity-0'}`}
+                                            />
+                                            <div className={`absolute bottom-3 right-3 sm:bottom-5 sm:right-5 px-3 py-1.5 sm:px-4 sm:py-2 bg-black/50 backdrop-blur text-white text-[9px] sm:text-[10px] md:text-xs font-medium rounded-full border border-white/10 shadow-lg transition-opacity duration-500 z-20 ${showHeatmap ? 'opacity-100' : 'opacity-0'}`}>
+                                                Grad-CAM Overlay
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+
+                                {results.predictions?.length === 1 && (results.predictions[0].region === 'full_image' || results.predictions[0].region === 'single_patch') ? (
+                                    <motion.div variants={itemVariants}>
+                                        <SingleImageCard
+                                            item={results.predictions[0]}
+                                            patch={patches[results.predictions[0].region] || originalFullImage}
+                                            heatmap={results.gradcam_heatmaps?.[results.predictions[0].region]}
+                                            showHeatmap={showHeatmap}
+                                        />
+                                    </motion.div>
+                                ) : (
+                                    <motion.div variants={itemVariants}>
+                                        <div className="flex items-baseline justify-between mb-4 sm:mb-6 md:mb-8">
+                                            <h3 className="text-sm sm:text-base md:text-lg font-medium text-zinc-900">Regional Analysis</h3>
+                                            <span className="text-[9px] sm:text-[10px] md:text-xs text-zinc-400 font-light uppercase tracking-wider">Micro-texture Features</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+                                            {results.predictions?.map((item, idx) => (
+                                                <PatchCard
+                                                    key={idx}
+                                                    item={item}
+                                                    patch={patches[item.region]}
+                                                    heatmap={results.gradcam_heatmaps?.[item.region]}
+                                                    showHeatmap={showHeatmap}
+                                                />
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                )}
+
+                                {/* --- Heatmap Toggle Relocated Here (Lebih Strategis) --- */}
+                                <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 bg-zinc-50 border border-zinc-100 rounded-[1.25rem] sm:rounded-[1.5rem]">
+                                    <div>
+                                        <h4 className="text-[11px] sm:text-xs font-bold text-zinc-900 uppercase tracking-widest flex items-center gap-2">
+                                            <Eye className="w-3.5 h-3.5 text-zinc-500" />
+                                            Visual Controls
+                                        </h4>
+                                        <p className="text-[10px] sm:text-[11px] text-zinc-500 mt-1">Toggle to see exactly what the AI sees</p>
                                     </div>
-                                    <p className="text-xs sm:text-sm md:text-base text-zinc-400 font-light mt-1.5 sm:mt-2 max-w-2xl">Algorithmically clustered ingredients matching your {diagnosis} skin profile.</p>
-                                </div>
-                            </div>
-                            {/* AI Chat Badge untuk memancing perhatian user */}
-                            <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-zinc-900 rounded-full shadow-sm">
-                                <Sparkles className="w-4 h-4 text-indigo-300" />
-                                <span className="text-xs font-medium text-white">SkinAI Assistant Ready</span>
+                                    <button
+                                        onClick={() => setShowHeatmap(!showHeatmap)}
+                                        className={`relative flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs font-medium rounded-full transition-all shadow-sm w-full sm:w-auto ${
+                                            showHeatmap 
+                                                ? 'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-md' 
+                                                : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50'
+                                        }`}
+                                    >
+                                        {showHeatmap ? <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                                        {showHeatmap ? 'Hide AI Heatmap' : 'Show AI Heatmap'}
+                                    </button>
+                                </motion.div>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16">
-                            <div className="space-y-5 sm:space-y-6 md:space-y-8">
-                                <h3 className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2 sm:gap-2.5">
-                                    <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-                                    Primary Match (Anchor Cluster)
-                                </h3>
-                                <div className="space-y-3 sm:space-y-4">
-                                    {recommendations.primary_ingredients?.map((ing, i) => (
-                                        <IngredientRow key={i} ingredient={ing} type="primary" onViewDetails={setSelectedIngredient} />
-                                    ))}
+                    {/* --- Recommendations Section --- */}
+                    {recommendations && (
+                        <motion.section variants={itemVariants} className="border-t border-zinc-100 pt-10 md:pt-20">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 md:mb-14">
+                                <div className="flex gap-4">
+                                    <span className="hidden sm:block w-2 h-9 bg-indigo-600 rounded-full shrink-0"></span>
+                                    <div>
+                                        <div className="flex flex-wrap items-center gap-2.5">
+                                            <h2 className="text-lg sm:text-xl md:text-2xl font-medium text-zinc-900">Condition-Anchored Regimen</h2>
+                                            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shrink-0">
+                                                <Network className="w-3.5 h-3.5" /> Semantic Clustering
+                                            </span>
+                                        </div>
+                                        <p className="text-xs sm:text-sm md:text-base text-zinc-400 font-light mt-1.5 sm:mt-2 max-w-2xl">Algorithmically clustered ingredients matching your {diagnosis} skin profile.</p>
+                                    </div>
+                                </div>
+                                {/* AI Chat Badge untuk memancing perhatian user */}
+                                <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-zinc-900 rounded-full shadow-sm">
+                                    <Sparkles className="w-4 h-4 text-indigo-300" />
+                                    <span className="text-xs font-medium text-white">SkinAI Assistant Ready</span>
                                 </div>
                             </div>
 
-                            {recommendations.alternative_ingredients?.length > 0 && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16">
                                 <div className="space-y-5 sm:space-y-6 md:space-y-8">
                                     <h3 className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2 sm:gap-2.5">
-                                        <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-zinc-300 shrink-0"></span>
-                                        Alternative Options (Supporting Clusters)
+                                        <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                        Primary Match (Anchor Cluster)
                                     </h3>
                                     <div className="space-y-3 sm:space-y-4">
-                                        {recommendations.alternative_ingredients?.map((ing, i) => (
-                                            <IngredientRow key={i} ingredient={ing} type="secondary" onViewDetails={setSelectedIngredient} />
+                                        {recommendations.primary_ingredients?.map((ing, i) => (
+                                            <IngredientRow key={i} ingredient={ing} type="primary" onViewDetails={setSelectedIngredient} />
                                         ))}
                                     </div>
                                 </div>
-                            )}
-                        </div>
-                    </motion.section>
-                )}
 
-                {/* --- Sticky Action Bar --- */}
-                <motion.div
-                    variants={itemVariants}
-                    className="fixed bottom-0 left-0 right-0 p-4 sm:p-5 md:p-7 bg-white/90 backdrop-blur-xl border-t border-zinc-200 z-40 safe-area-pb"
-                >
-                    <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-end gap-3 sm:gap-4 md:gap-5">
-                        <span className="hidden sm:block text-[10px] sm:text-xs md:text-sm text-zinc-400 mr-auto">
-                            Analysis ID: <span className="font-mono text-zinc-900">{results.analysis_id?.substring(0, 8) || '---'}</span>
-                        </span>
+                                {recommendations.alternative_ingredients?.length > 0 && (
+                                    <div className="space-y-5 sm:space-y-6 md:space-y-8">
+                                        <h3 className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2 sm:gap-2.5">
+                                            <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-zinc-300 shrink-0"></span>
+                                            Alternative Options (Supporting Clusters)
+                                        </h3>
+                                        <div className="space-y-3 sm:space-y-4">
+                                            {recommendations.alternative_ingredients?.map((ing, i) => (
+                                                <IngredientRow key={i} ingredient={ing} type="secondary" onViewDetails={setSelectedIngredient} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.section>
+                    )}
 
-                        <div className="flex w-full sm:w-auto gap-2.5 sm:gap-4">
-                            <Link
-                                to={ROUTES.ANALYZE}
-                                className="flex-1 sm:flex-none sm:w-auto px-2 py-3 sm:px-5 md:px-7 sm:py-3.5 rounded-xl font-medium text-[13px] sm:text-sm md:text-base text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all flex items-center justify-center gap-1.5 sm:gap-2.5"
-                            >
-                                <RefreshCw className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                                Discard
-                            </Link>
+                    {/* --- Sticky Action Bar --- */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="fixed bottom-0 left-0 right-0 p-4 sm:p-5 md:p-7 bg-white/90 backdrop-blur-xl border-t border-zinc-200 z-40 safe-area-pb"
+                    >
+                        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-end gap-3 sm:gap-4 md:gap-5">
+                            <span className="hidden sm:block text-[10px] sm:text-xs md:text-sm text-zinc-400 mr-auto">
+                                Analysis ID: <span className="font-mono text-zinc-900">{results.analysis_id?.substring(0, 8) || '---'}</span>
+                            </span>
 
-                            {isAuthenticated ? (
-                                <button
-                                    onClick={handleSave}
-                                    disabled={isSaved || isSaving}
-                                    className={`
-                                        flex-1 sm:flex-none sm:w-auto px-4 py-3 sm:px-7 md:px-9 sm:py-3.5 rounded-xl font-medium text-[13px] sm:text-sm md:text-base flex items-center justify-center gap-1.5 sm:gap-2.5 transition-all shadow-lg
-                                        ${isSaved
-                                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                            : 'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-xl hover:-translate-y-0.5'
-                                        }
-                                    `}
-                                >
-                                    {isSaved ? (
-                                        <>
-                                            <Check className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> Saved
-                                        </>
-                                    ) : isSaving ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 sm:w-4.5 sm:h-4.5 animate-spin" /> Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> Save<span className="hidden sm:inline"> Analysis</span>
-                                        </>
-                                    )}
-                                </button>
-                            ) : (
+                            <div className="flex w-full sm:w-auto gap-2.5 sm:gap-4">
                                 <Link
-                                    to={ROUTES.LOGIN}
-                                    className="flex-1 sm:flex-none sm:w-auto px-4 py-3 sm:px-7 md:px-9 sm:py-3.5 bg-indigo-600 text-white rounded-xl font-medium text-[13px] sm:text-sm md:text-base flex items-center justify-center gap-1.5 sm:gap-2.5 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                                    to={ROUTES.ANALYZE}
+                                    className="flex-1 sm:flex-none sm:w-auto px-2 py-3 sm:px-5 md:px-7 sm:py-3.5 rounded-xl font-medium text-[13px] sm:text-sm md:text-base text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all flex items-center justify-center gap-1.5 sm:gap-2.5"
                                 >
-                                    Login <span className="hidden sm:inline">to Save</span>
+                                    <RefreshCw className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                                    Discard
                                 </Link>
-                            )}
+
+                                {isAuthenticated ? (
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={isSaved || isSaving}
+                                        className={`
+                                            flex-1 sm:flex-none sm:w-auto px-4 py-3 sm:px-7 md:px-9 sm:py-3.5 rounded-xl font-medium text-[13px] sm:text-sm md:text-base flex items-center justify-center gap-1.5 sm:gap-2.5 transition-all shadow-lg
+                                            ${isSaved
+                                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                                : 'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-xl hover:-translate-y-0.5'
+                                            }
+                                        `}
+                                    >
+                                        {isSaved ? (
+                                            <>
+                                                <Check className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> Saved
+                                            </>
+                                        ) : isSaving ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 sm:w-4.5 sm:h-4.5 animate-spin" /> Saving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> Save<span className="hidden sm:inline"> Analysis</span>
+                                            </>
+                                        )}
+                                    </button>
+                                ) : (
+                                    <Link
+                                        to={ROUTES.LOGIN}
+                                        className="flex-1 sm:flex-none sm:w-auto px-4 py-3 sm:px-7 md:px-9 sm:py-3.5 bg-indigo-600 text-white rounded-xl font-medium text-[13px] sm:text-sm md:text-base flex items-center justify-center gap-1.5 sm:gap-2.5 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                                    >
+                                        Login <span className="hidden sm:inline">to Save</span>
+                                    </Link>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                </motion.div>
-            </motion.main>
+                    </motion.div>
+                </motion.main>
+            )}
 
             {/* --- Render Modal Detail --- */}
             <AnimatePresence>
