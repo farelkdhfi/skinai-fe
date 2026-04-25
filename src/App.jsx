@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AnalysisProvider } from './context/AnalysisContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -20,6 +20,8 @@ import PaperPage from './pages/PaperPage';
 import ContactPage from './pages/ContactPage';
 import GuidancePage from './pages/GuidancePage';
 import SuccessPage from './pages/SuccessPage';
+import GuestRoute from './routes/GuestRoute';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 function App() {
   return (
@@ -29,34 +31,31 @@ function App() {
           <LanguageProvider>
             <AnalysisProvider>
               <Routes>
-                {/* Home */}
-                <Route path={ROUTES.HOME} element={<Home />} />
+
+                <Route path={ROUTES.HOME} element={<GuestRoute><Home /></GuestRoute>} />
+                <Route path={ROUTES.INTRO_WEB} element={<GuestRoute><IntroWebPage /></GuestRoute>} />
+                <Route path={ROUTES.LOGIN} element={<GuestRoute><AuthPage /></GuestRoute>} />
+                <Route path={ROUTES.REGISTER} element={<GuestRoute><AuthPage /></GuestRoute>} />
+
+                {/* --- PROTECTED (Wajib Login) --- */}
+                <Route path={ROUTES.DASHBOARD} element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+                <Route path="/history/:id" element={<ProtectedRoute><HistoryDetailPage /></ProtectedRoute>} />
+                <Route path={ROUTES.HISTORY_LIST} element={<ProtectedRoute><HistoryListPage /></ProtectedRoute>} />
+
+
+                {/* --- PUBLIC (Bisa diakses siapa saja) --- */}
                 <Route path={ROUTES.ABOUT} element={<AboutPage />} />
                 <Route path={ROUTES.PAPER} element={<PaperPage />} />
                 <Route path={ROUTES.CONTACT} element={<ContactPage />} />
-
-                {/* Intro Page */}
-                <Route path={ROUTES.INTRO_WEB} element={<IntroWebPage />} />
-
-                {/* Main pages */}
+                <Route path={ROUTES.SUCCESS} element={<SuccessPage />} />
                 <Route path={ROUTES.RESULTS} element={<ResultsPage />} />
-                <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-                <Route path="/history/:id" element={<HistoryDetailPage />} />
-                <Route path={ROUTES.HISTORY_LIST} element={<HistoryListPage />} />
-
-                {/* Analysis Routes */}
                 <Route path={ROUTES.ANALYZE} element={<AnalyzeIntroPage />} />
                 <Route path={ROUTES.GUIDANCE} element={<GuidancePage />} />
                 <Route path={ROUTES.LIVECAM} element={<SmartCameraPage initialMode="camera" />} />
                 <Route path={ROUTES.UPLOAD} element={<SmartCameraPage initialMode="upload" />} />
 
-                {/* Auth pages */}
-                <Route path={ROUTES.LOGIN} element={<AuthPage />} />
-                <Route path={ROUTES.REGISTER} element={<AuthPage />} />
-                <Route path={ROUTES.SUCCESS} element={<SuccessPage />} />
-
-                {/* Fallback */}
-                <Route path="*" element={<Home />} />
+                {/* Fallback - Jika rute tidak ditemukan, balikkan ke Home (GuestRoute akan handle auto-redirect jika sudah login) */}
+                <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
               </Routes>
             </AnalysisProvider>
           </LanguageProvider>
