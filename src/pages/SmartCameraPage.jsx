@@ -692,7 +692,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                             </div>
 
                             {/* Dynamic Text Container */}
-                            <div className="h-7 overflow-hidden relative w-full flex justify-center">
+                            <div className="h-8 overflow-hidden relative w-full flex justify-center">
                                 <AnimatePresence mode="wait">
                                     <motion.span
                                         key={isAnalyzing ? loadingTextIdx : 'init'}
