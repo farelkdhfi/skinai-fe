@@ -677,32 +677,35 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed top-0 left-0 w-full h-[100dvh] z-[150] flex flex-col items-center justify-center bg-white"
+                        className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-white"
                     >
-                        {/* New Elegant Sparkles Element */}
-                        <div className="w-64 h-64 md:w-80 md:h-80 mb-2 cursor-pointer flex items-center justify-center">
-                            <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
-                                <ambientLight intensity={1.5} />
-                                <directionalLight position={[5, 5, 5]} intensity={2} />
-                                <directionalLight position={[-5, -5, -5]} intensity={1} color="#ffffff" />
-                                <AnimatedSparkles />
-                            </Canvas>
-                        </div>
+                        {/* WRAPPER UNTUK OPTICAL CENTERING */}
+                        <div className="flex flex-col items-center justify-center -translate-y-12 md:-translate-y-16">
+                            {/* New Elegant Sparkles Element dengan Bounding Box yang lebih rapat */}
+                            <div className="w-48 h-48 md:w-64 md:h-64 mb-4 cursor-pointer flex items-center justify-center">
+                                <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
+                                    <ambientLight intensity={1.5} />
+                                    <directionalLight position={[5, 5, 5]} intensity={2} />
+                                    <directionalLight position={[-5, -5, -5]} intensity={1} color="#ffffff" />
+                                    <AnimatedSparkles />
+                                </Canvas>
+                            </div>
 
-                        {/* Dynamic Text Container */}
-                        <div className="h-6 overflow-hidden relative w-full flex justify-center">
-                            <AnimatePresence mode="wait">
-                                <motion.span
-                                    key={isAnalyzing ? loadingTextIdx : 'init'}
-                                    initial={{ y: 20, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    exit={{ y: -20, opacity: 0 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="absolute text-[10px] md:text-xs font-bold tracking-[0.3em] text-zinc-900 uppercase text-center"
-                                >
-                                    {isAnalyzing ? loadingPhrases[loadingTextIdx] : 'Initializing AI Model'}
-                                </motion.span>
-                            </AnimatePresence>
+                            {/* Dynamic Text Container */}
+                            <div className="h-6 overflow-hidden relative w-full flex justify-center">
+                                <AnimatePresence mode="wait">
+                                    <motion.span
+                                        key={isAnalyzing ? loadingTextIdx : 'init'}
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        exit={{ y: -20, opacity: 0 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="absolute text-[10px] md:text-xs font-bold tracking-[0.3em] text-zinc-900 uppercase text-center"
+                                    >
+                                        {isAnalyzing ? loadingPhrases[loadingTextIdx] : 'Initializing AI Model'}
+                                    </motion.span>
+                                </AnimatePresence>
+                            </div>
                         </div>
                     </motion.div>
                 )}
