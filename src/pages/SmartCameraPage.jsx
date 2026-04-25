@@ -677,10 +677,10 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-white"
+                        className="fixed top-0 left-0 w-full h-[100dvh] z-[150] flex flex-col items-center justify-center bg-white"
                     >
                         {/* New Elegant Sparkles Element */}
-                        <div className="w-64 h-64 md:w-80 md:h-80 cursor-pointer flex items-center justify-center">
+                        <div className="w-64 h-64 md:w-80 md:h-80 mb-2 cursor-pointer flex items-center justify-center">
                             <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
                                 <ambientLight intensity={1.5} />
                                 <directionalLight position={[5, 5, 5]} intensity={2} />
@@ -690,7 +690,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                         </div>
 
                         {/* Dynamic Text Container */}
-                        <div className="min-h-[24px] flex items-center justify-center">
+                        <div className="h-6 overflow-hidden relative w-full flex justify-center">
                             <AnimatePresence mode="wait">
                                 <motion.span
                                     key={isAnalyzing ? loadingTextIdx : 'init'}
@@ -698,7 +698,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                                     animate={{ y: 0, opacity: 1 }}
                                     exit={{ y: -20, opacity: 0 }}
                                     transition={{ duration: 0.3 }}
-                                    className=" text-[10px] md:text-xs font-bold tracking-[0.3em] text-zinc-900 uppercase text-center"
+                                    className="absolute text-[10px] md:text-xs font-bold tracking-[0.3em] text-zinc-900 uppercase text-center"
                                 >
                                     {isAnalyzing ? loadingPhrases[loadingTextIdx] : 'Initializing AI Model'}
                                 </motion.span>
