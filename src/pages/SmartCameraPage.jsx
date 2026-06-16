@@ -83,6 +83,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
     // -- State --
     const [mode, setMode] = useState(initialMode);
     const [analysisType, setAnalysisType] = useState('full');
+    const [aggregationMethod, setAggregationMethod] = useState('racwv');
     const [selectedImage, setSelectedImage] = useState(null);
     const [capturedFrame, setCapturedFrame] = useState(null);
     const [validations, setValidations] = useState({
@@ -429,7 +430,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                 patches['single_patch'] = patchCanvas.toDataURL('image/jpeg', 0.95);
             }
 
-            await analyze(patches, canvas.toDataURL('image/jpeg', 0.95), bboxes);
+            await analyze(patches, canvas.toDataURL('image/jpeg', 0.95), bboxes, aggregationMethod);
             navigate(ROUTES.RESULTS);
         } catch (err) {
             console.error('Analysis error:', err);
@@ -533,6 +534,22 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                         </div>
                         <span className="text-[10px] md:text-xs font-bold tracking-widest uppercase hidden md:block mt-0.5">Exit</span>
                     </button>
+
+                    <div className="flex gap-1 md:gap-2 p-1 bg-zinc-100/80 backdrop-blur-sm rounded-full z-10">
+                            {['racwv', 'caaa'].map((method) => (
+                                <button
+                                    key={method}
+                                    onClick={() => setAggregationMethod(method)}
+                                    className={`
+                                        px-4 py-1.5 md:px-5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold tracking-widest uppercase transition-all duration-300
+                                        ${aggregationMethod === method ? 'bg-indigo-500 text-white shadow-md' : 'text-zinc-500 hover:text-zinc-700'}
+                                    `}
+                                    // Catatan: Saya pakai bg-indigo-500 sebagai pembeda visual, Anda bisa ganti ke bg-zinc-900 jika ingin senada
+                                >
+                                    {method}
+                                </button>
+                            ))}
+                        </div>
 
                     <div className="flex gap-2">
                         <AnimatePresence>

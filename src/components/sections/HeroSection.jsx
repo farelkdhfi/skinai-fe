@@ -9,7 +9,7 @@ import {
 // --- ASSETS ---
 import { ROUTES } from '../../config';
 
-import HeroImg from '../../assets/fullface.png';
+import HeroImg from '../../assets/heroImage2.png';
 import ParallaxImage from '../ui/ParallaxImage';
 
 const HeroSection = ({ onStartClick }) => {

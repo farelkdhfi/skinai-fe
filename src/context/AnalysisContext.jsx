@@ -11,7 +11,8 @@ export function AnalysisProvider({ children }) {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [error, setError] = useState(null);
 
-    const analyze = useCallback(async (images, fullImage = null, bboxes = null) => {
+    // TAMBAHAN: Tambahkan parameter aggregationMethod dengan nilai default 'racwv'
+    const analyze = useCallback(async (images, fullImage = null, bboxes = null, aggregationMethod = 'racwv') => {
         setIsAnalyzing(true);
         setError(null);
 
@@ -22,7 +23,8 @@ export function AnalysisProvider({ children }) {
             const payload = {
                 images: images,
                 full_face_image: fullImage,
-                bounding_boxes: bboxes && Object.keys(bboxes).length > 0 ? bboxes : null
+                bounding_boxes: bboxes && Object.keys(bboxes).length > 0 ? bboxes : null,
+                aggregation_method: aggregationMethod // <-- TAMBAHAN: Masukkan ke dalam payload API
             };
 
             const response = await analyzeAPI.analyze(payload);

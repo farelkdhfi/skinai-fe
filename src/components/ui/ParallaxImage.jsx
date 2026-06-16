@@ -55,7 +55,7 @@ const ParallaxImage = ({ src, alt, className, speed = 1 }) => {
                             src={src}
                             alt={alt}
                             style={{ y, scale }}
-                            className="relative w-full h-full object-cover z-10 will-change-transform"
+                            className="relative mx-auto h-full object-cover z-10 will-change-transform"
                         />
 
                         {/* Cinematic light sweep */}
