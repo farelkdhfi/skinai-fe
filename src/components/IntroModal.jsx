@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Sphere, MeshDistortMaterial, Environment, Float } from '@react-three/drei';
-import { 
-    Fingerprint, 
-    ScanFace, 
-    Cpu, 
+import {
+    Fingerprint,
+    ScanFace,
+    Cpu,
     ArrowRight,
     Activity,
     Layers,
@@ -23,33 +23,33 @@ import { ROUTES } from '../config';
 const DualBubbleMesh = () => {
     const bubble1Ref = useRef();
     const bubble2Ref = useRef();
-    
+
     useFrame((state) => {
         const t = state.clock.elapsedTime;
         if (bubble1Ref.current) {
             bubble1Ref.current.rotation.x = t * 0.1;
             bubble1Ref.current.rotation.y = t * 0.15;
-            bubble1Ref.current.position.y = Math.sin(t * 0.5) * 0.2; 
+            bubble1Ref.current.position.y = Math.sin(t * 0.5) * 0.2;
         }
         if (bubble2Ref.current) {
             bubble2Ref.current.rotation.x = -t * 0.12;
             bubble2Ref.current.rotation.y = t * 0.1;
-            bubble2Ref.current.position.y = Math.cos(t * 0.4) * 0.3 - 0.5; 
+            bubble2Ref.current.position.y = Math.cos(t * 0.4) * 0.3 - 0.5;
         }
     });
 
     return (
         <Float speed={2} rotationIntensity={1} floatIntensity={1.5}>
             <Sphere ref={bubble1Ref} args={[2.2, 64, 64]} position={[-0.8, 0.15, 0]}>
-                <MeshDistortMaterial 
-                    color="#000000" speed={3} distort={0.4} radius={1} roughness={0.05}     
-                    metalness={0.8} clearcoat={1} clearcoatRoughness={0.1} transparent={true} opacity={0.85}       
+                <MeshDistortMaterial
+                    color="#000000" speed={3} distort={0.4} radius={1} roughness={0.05}
+                    metalness={0.8} clearcoat={1} clearcoatRoughness={0.1} transparent={true} opacity={0.85}
                 />
             </Sphere>
             <Sphere ref={bubble2Ref} args={[1.6, 64, 64]} position={[0.8, -0.65, -0.8]}>
-                <MeshDistortMaterial 
-                    color="#ffffff" speed={4} distort={0.5} radius={1} roughness={0.05} 
-                    metalness={0.1} clearcoat={1} clearcoatRoughness={0.1} transparent={true} opacity={0.5}        
+                <MeshDistortMaterial
+                    color="#ffffff" speed={4} distort={0.5} radius={1} roughness={0.05}
+                    metalness={0.1} clearcoat={1} clearcoatRoughness={0.1} transparent={true} opacity={0.5}
                 />
             </Sphere>
             <Environment preset="city" />
@@ -75,15 +75,15 @@ const BiometricBubbleIllustrator = () => {
 // OPTIMASI: Ganti 'spring' yang berat kalkulasinya dengan 'tween' yang jauh lebih ringan dan mulus
 const itemVariants = {
     hidden: { opacity: 0, y: 15 },
-    visible: { 
-        opacity: 1, 
-        y: 0, 
-        transition: { type: "tween", duration: 0.35, ease: "easeOut" } 
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { type: "tween", duration: 0.35, ease: "easeOut" }
     },
-    exit: { 
-        opacity: 0, 
-        y: -15, 
-        transition: { type: "tween", duration: 0.2, ease: "easeIn" } 
+    exit: {
+        opacity: 0,
+        y: -15,
+        transition: { type: "tween", duration: 0.2, ease: "easeIn" }
     }
 };
 
@@ -91,43 +91,70 @@ const IntroModal = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
     const [step, setStep] = useState(0);
     const [isPopping, setIsPopping] = useState(false);
-    const utteranceRef = useRef(null); 
+    const utteranceRef = useRef(null);
 
-    // Penambahan step data untuk tutorial (Step 2)
     const stepData = [
-        { title: "System initialized.", subtitle: "Preparing high-precision facial skin analysis...", spoken: "System initialized. Preparing high-precision facial skin analysis." },
-        { title: "Advanced Biometric AI", subtitle: "Powered by cutting-edge technology for absolute precision.", spoken: "Our advanced architecture utilizes Region-Aware Voting, Explainable A I, and Real-Time Processing to guarantee accuracy." },
-        { title: "Cara Penggunaan", subtitle: "Ikuti panduan langkah demi langkah ini untuk memulai analisis kulit Anda.", spoken: "Here is how to use the system. Scan your face, review the heatmaps, chat with our A I for ingredient details, and save your progress." },
-        { title: "Ready to Start", subtitle: "Choose how you would like to proceed.", spoken: "Please select an option to continue. Authenticate to save your history, or proceed with a Quick Scan as a guest." }
+        {
+            title: "System Initialized",
+            subtitle: "Preparing high-precision facial skin analysis...",
+            spoken: "System initialized. Preparing high-precision facial skin analysis."
+        },
+        {
+            title: "Advanced AI Technology",
+            subtitle: "Powered by cutting-edge AI for accurate and transparent skin analysis.",
+            spoken: "Our advanced architecture combines Region-Aware Confidence-Weighted Voting, Explainable AI, and real-time processing to deliver reliable results."
+        },
+        {
+            title: "How It Works",
+            subtitle: "Follow these simple steps to begin your facial skin analysis.",
+            spoken: "Start by scanning your face, review the heatmaps, explore ingredient recommendations, and chat with our AI for detailed explanations."
+        },
+        {
+            title: "Ready to Start",
+            subtitle: "Choose how you would like to proceed.",
+            spoken: "Please select an option to continue. Sign in to save your analysis history, or proceed with Quick Scan as a guest."
+        }
     ];
 
     const features = [
-        { icon: <Layers className="w-4 h-4 md:w-5 md:h-5 text-zinc-800" />, title: "Region-Aware Voting", desc: "Patch-based texture extraction aggregated through region-specific weighting." },
-        { icon: <Cpu className="w-4 h-4 md:w-5 md:h-5 text-zinc-800" />, title: "Explainable AI", desc: "Transparent Grad-CAM heatmaps reveal the exact micro-features driving diagnosis." },
-        { icon: <Activity className="w-4 h-4 md:w-5 md:h-5 text-zinc-800" />, title: "Real-Time Processing", desc: "Seamless edge-level inference ensuring your data is processed swiftly." }
+        {
+            icon: <Layers className="w-4 h-4 md:w-5 md:h-5 text-zinc-800" />,
+            title: "Region-Aware Voting",
+            desc: "Patch-based texture analysis aggregated using region-specific confidence weighting."
+        },
+        {
+            icon: <Cpu className="w-4 h-4 md:w-5 md:h-5 text-zinc-800" />,
+            title: "Explainable AI",
+            desc: "Transparent Grad-CAM heatmaps reveal the facial regions driving each prediction."
+        },
+        {
+            icon: <Activity className="w-4 h-4 md:w-5 md:h-5 text-zinc-800" />,
+            title: "Real-Time Processing",
+            desc: "Fast on-device inference delivers smooth and responsive skin analysis."
+        }
     ];
 
-    // Data konten tutorial
+    // Tutorial content
     const tutorials = [
         {
             icon: <Camera className="w-4 h-4 md:w-5 md:h-5" />,
-            title: "1. Buka Kamera & Pindai",
-            desc: "Arahkan wajah ke kamera dan lanjutkan analisis. Tunggu sejenak sementara AI memproses struktur wajah Anda."
+            title: "1. Open the Camera & Scan",
+            desc: "Position your face within the camera frame and start the analysis. Wait a few seconds while the AI processes your facial features."
         },
         {
             icon: <ScanSearch className="w-4 h-4 md:w-5 md:h-5" />,
-            title: "2. Hasil & Heatmap",
-            desc: "Lihat hasil diagnosis yang dilengkapi dengan Grad-CAM heatmap untuk menyorot area spesifik deteksi model."
+            title: "2. View Results & Heatmaps",
+            desc: "Review your skin analysis along with Grad-CAM heatmaps that highlight the facial regions influencing the AI's prediction."
         },
         {
             icon: <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />,
-            title: "3. Rekomendasi & Chat AI",
-            desc: "Dapatkan rekomendasi bahan aktif. Klik 'See Detail' pada bahan aktif untuk chat interaktif dengan AI mengenai fungsinya."
+            title: "3. Ingredient Recommendations & AI Chat",
+            desc: "Receive personalized active ingredient recommendations. Click 'See Details' to chat with the AI and learn about each ingredient's benefits."
         },
         {
             icon: <LayoutDashboard className="w-4 h-4 md:w-5 md:h-5" />,
-            title: "4. Akses Dashboard",
-            desc: "Untuk menyimpan riwayat analisis dan masuk ke dashboard personal, silakan login atau daftar terlebih dahulu."
+            title: "4. Access Your Dashboard",
+            desc: "Sign in or create an account to save your analysis history and access your personalized dashboard."
         }
     ];
 
@@ -150,19 +177,19 @@ const IntroModal = ({ isOpen, onClose }) => {
                     setStep(1);
                     setIsPopping(false);
                 }
-            }, 400); 
+            }, 400);
         };
 
         const speakCurrentStep = () => {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); 
+                window.speechSynthesis.cancel();
 
                 const utterance = new SpeechSynthesisUtterance(stepData[step].spoken);
-                utteranceRef.current = utterance; 
+                utteranceRef.current = utterance;
                 utterance.lang = 'en-US';
                 utterance.rate = 0.95;
                 utterance.pitch = 1.0;
-                
+
                 if (step === 0) {
                     let stepProceeded = false;
                     const safeProceed = () => {
@@ -179,7 +206,7 @@ const IntroModal = ({ isOpen, onClose }) => {
 
                 window.speechSynthesis.speak(utterance);
             } else if (step === 0) {
-                fallbackTimer = setTimeout(proceedToNextStep, 5000); 
+                fallbackTimer = setTimeout(proceedToNextStep, 5000);
             }
         };
 
@@ -188,12 +215,12 @@ const IntroModal = ({ isOpen, onClose }) => {
         return () => {
             isCancelled = true;
             clearTimeout(delayTimer);
-            clearTimeout(fallbackTimer); 
+            clearTimeout(fallbackTimer);
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
             }
         };
-    }, [step, isOpen]); 
+    }, [step, isOpen]);
 
     const handleNext = () => setStep((prev) => Math.min(prev + 1, 3)); // Update max step
     const handlePrev = () => setStep((prev) => Math.max(prev - 1, 0));
@@ -201,22 +228,22 @@ const IntroModal = ({ isOpen, onClose }) => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <motion.div 
-                    initial={{ opacity: 0, y: "100%" }} 
+                <motion.div
+                    initial={{ opacity: 0, y: "100%" }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: "100%" }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} 
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                     className="fixed inset-0 z-[100] h-[100dvh] w-full bg-white text-zinc-950 flex flex-col items-center justify-between p-4 md:p-6 overflow-hidden font-sans selection:bg-zinc-200 selection:text-zinc-900 will-change-transform"
                 >
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-zinc-100 rounded-full blur-[100px] pointer-events-none" />
 
                     <div className="max-w-4xl w-full flex-grow flex flex-col items-center justify-center z-10">
                         <AnimatePresence mode="wait">
-                            <motion.div 
-                                key={step} 
-                                variants={itemVariants} 
-                                initial="hidden" 
-                                animate="visible" 
+                            <motion.div
+                                key={step}
+                                variants={itemVariants}
+                                initial="hidden"
+                                animate="visible"
                                 exit="exit"
                                 style={{ willChange: "opacity, transform" }}
                                 className="w-full flex flex-col items-center text-center space-y-4 md:space-y-8"
@@ -227,7 +254,7 @@ const IntroModal = ({ isOpen, onClose }) => {
                                             <BiometricBubbleIllustrator />
                                         </div>
                                     )}
-                                    
+
                                     <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-medium tracking-tighter text-zinc-900 max-w-2xl mx-auto leading-tight">
                                         {stepData[step].title}
                                     </h1>
@@ -240,11 +267,11 @@ const IntroModal = ({ isOpen, onClose }) => {
                                 {step === 1 && (
                                     <div className="w-full max-w-4xl flex flex-col md:grid md:grid-cols-3 gap-2 md:gap-6 pt-2 md:pt-4 px-2">
                                         {features.map((item, idx) => (
-                                            <motion.div 
-                                                key={idx} 
-                                                initial={{ opacity: 0, y: 10 }} 
-                                                animate={{ opacity: 1, y: 0 }} 
-                                                transition={{ delay: idx * 0.1, duration: 0.35, type: "tween", ease: "easeOut" }} 
+                                            <motion.div
+                                                key={idx}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: idx * 0.1, duration: 0.35, type: "tween", ease: "easeOut" }}
                                                 style={{ willChange: "opacity, transform" }}
                                                 className="group relative bg-zinc-50/80 rounded-xl md:rounded-3xl border border-zinc-100 hover:border-zinc-300 transition-all duration-300 flex flex-row md:flex-col items-center md:items-start p-3 md:p-8 text-left gap-3 md:gap-0"
                                             >
@@ -264,11 +291,11 @@ const IntroModal = ({ isOpen, onClose }) => {
                                 {step === 2 && (
                                     <div className="w-full max-w-3xl flex flex-col sm:grid sm:grid-cols-2 gap-3 md:gap-5 pt-2 md:pt-4 px-2">
                                         {tutorials.map((item, idx) => (
-                                            <motion.div 
-                                                key={idx} 
-                                                initial={{ opacity: 0, y: 10 }} 
-                                                animate={{ opacity: 1, y: 0 }} 
-                                                transition={{ delay: idx * 0.1, duration: 0.35, type: "tween", ease: "easeOut" }} 
+                                            <motion.div
+                                                key={idx}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: idx * 0.1, duration: 0.35, type: "tween", ease: "easeOut" }}
                                                 style={{ willChange: "opacity, transform" }}
                                                 className="group relative bg-zinc-50/80 rounded-xl md:rounded-2xl border border-zinc-100 hover:border-zinc-300 transition-all duration-300 flex items-start p-3 md:p-5 text-left gap-3 md:gap-4 shadow-sm hover:shadow-md"
                                             >
@@ -297,7 +324,7 @@ const IntroModal = ({ isOpen, onClose }) => {
                                             </div>
                                             <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-zinc-500 group-hover:text-white group-hover:translate-x-1.5 transition-all self-center md:self-end" />
                                         </button>
-                                        
+
                                         <button onClick={() => navigate(ROUTES.LIVECAM)} className="group flex items-center justify-between p-4 md:p-6 bg-zinc-50 border border-zinc-100 rounded-xl md:rounded-3xl hover:bg-white hover:border-zinc-200 hover:shadow-sm transition-all duration-300">
                                             <div className="text-left flex flex-col justify-center">
                                                 <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white flex items-center justify-center text-zinc-400 border border-zinc-100 mb-2">
@@ -318,14 +345,14 @@ const IntroModal = ({ isOpen, onClose }) => {
                         <button onClick={handlePrev} disabled={step === 0} className={`flex items-center gap-1.5 md:gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full text-xs md:text-sm font-medium transition-all ${step === 0 ? 'opacity-0 pointer-events-none' : 'bg-white border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 shadow-sm'}`}>
                             <ChevronLeft className="w-3.5 h-3.5 md:w-4 md:h-4" /> Prev
                         </button>
-                        
+
                         <div className="flex gap-2">
                             {/* Update dot indikator menjadi 4 titik */}
                             {[0, 1, 2, 3].map((dot) => (
                                 <div key={dot} className={`h-1.5 rounded-full transition-all duration-500 ${step === dot ? 'bg-zinc-800 w-6 md:w-8' : 'bg-zinc-200 w-1.5 md:w-2'}`} />
                             ))}
                         </div>
-                        
+
                         <button onClick={handleNext} disabled={step === 0 || step === 3} className={`flex items-center gap-1.5 md:gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full text-xs md:text-sm font-medium transition-all ${step === 0 || step === 3 ? 'opacity-0 pointer-events-none' : 'bg-zinc-900 text-white hover:bg-black shadow-md'}`}>
                             Next <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         </button>

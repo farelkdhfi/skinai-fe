@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-    ArrowLeft, Sparkles, ScanFace, 
-    Layers, Network, Eye, Code 
+import {
+    ArrowLeft, Sparkles, ScanFace,
+    Layers, Network, Eye, Code
 } from 'lucide-react';
 import { ROUTES } from '../config';
 import HeaderLandingPage from '../components/HeaderLandingPage';
@@ -28,25 +28,25 @@ const itemVariants = {
 
 export default function AboutPage() {
     const features = [
-        { 
-            icon: <ScanFace className="w-5 h-5 text-zinc-800" />, 
-            title: "Smart Camera Guidance", 
-            desc: "Standardisasi input citra real-time memastikan wajah berada di posisi optimal dengan pencahayaan ideal sebelum diproses." 
+        {
+            icon: <ScanFace className="w-5 h-5 text-zinc-800" />,
+            title: "Smart Camera Guidance",
+            desc: "Real-time image standardization ensures the face is optimally positioned under appropriate lighting before analysis."
         },
-        { 
-            icon: <Layers className="w-5 h-5 text-zinc-800" />, 
-            title: "Patch-Based MobileNetV2", 
-            desc: "Mengekstrak tekstur mikro dari area spesifik menggunakan agregasi Region-Aware Confidence Weighted Voting." 
+        {
+            icon: <Layers className="w-5 h-5 text-zinc-800" />,
+            title: "Patch-Based MobileNetV2",
+            desc: "Extracts micro-texture features from specific facial regions using Region-Aware Confidence-Weighted Voting."
         },
-        { 
-            icon: <Eye className="w-5 h-5 text-zinc-800" />, 
-            title: "Explainable AI (CFCM)", 
-            desc: "Grad-CAM heatmaps disatukan menjadi Composite Facial Condition Map, menyoroti area problematik secara transparan." 
+        {
+            icon: <Eye className="w-5 h-5 text-zinc-800" />,
+            title: "Explainable AI (CFCM)",
+            desc: "Grad-CAM heatmaps are fused into a Composite Facial Condition Map, transparently highlighting problematic regions."
         },
-        { 
-            icon: <Network className="w-5 h-5 text-zinc-800" />, 
-            title: "Semantic Clustering", 
-            desc: "Rekomendasi bahan aktif perawatan kulit berbasis Condition-Anchored Clustering tanpa mapping manual." 
+        {
+            icon: <Network className="w-5 h-5 text-zinc-800" />,
+            title: "Semantic Clustering",
+            desc: "Recommends skincare active ingredients using Condition-Anchored Clustering without manual rule-based mapping."
         }
     ];
 
@@ -83,7 +83,7 @@ export default function AboutPage() {
                         <span className="text-zinc-400">and Educative.</span>
                     </h1>
                     <p className="text-sm sm:text-base md:text-lg text-zinc-500 font-light leading-relaxed max-w-2xl mx-auto">
-                        Platform <i>end-to-end</i> berbasis kecerdasan buatan untuk analisis kesehatan kulit wajah yang dirancang untuk mengatasi keterbatasan akses layanan dermatologi konvensional.
+                        An <i>end-to-end</i> artificial intelligence platform for facial skin health analysis, designed to address the limited accessibility of conventional dermatology services.
                     </p>
                 </motion.div>
 
@@ -91,23 +91,23 @@ export default function AboutPage() {
                 <motion.div variants={itemVariants} className="bg-zinc-50 rounded-2xl sm:rounded-[2rem] md:rounded-[2.5rem] border border-zinc-100 p-5 sm:p-8 md:p-12 mb-12 sm:mb-16">
                     <h2 className="text-lg sm:text-xl md:text-2xl font-medium text-zinc-900 mb-3 sm:mb-4">Latar Belakang</h2>
                     <p className="text-sm md:text-base text-zinc-500 font-light leading-relaxed mb-4">
-                        Akses terhadap layanan dermatologi profesional seringkali terhambat oleh biaya dan distribusi tenaga medis yang tidak merata. SkinAI hadir sebagai alat bantu <i>self-assessment</i> yang memungkinkan pengguna menganalisis kondisi kulit (Acne, Oily, Normal) langsung dari perangkat mereka.
+                        Access to professional dermatology services is often limited by high costs and the uneven distribution of healthcare professionals. SkinAI serves as an <i>AI-powered self-assessment</i> tool that enables users to analyze their facial skin condition (Acne, Oily, or Normal) directly from their own devices.
                     </p>
                     <p className="text-sm md:text-base text-zinc-500 font-light leading-relaxed">
-                        Berbeda dengan AI pendeteksi kulit konvensional yang sering bersifat <i>black-box</i>, SkinAI dirancang untuk memberikan transparansi penuh melalui Explainable AI, sehingga pengguna bisa melihat langsung area wajah mana yang menjadi dasar analisis algoritma.
+                        Unlike conventional AI-based skin analysis systems that often operate as <i>black boxes</i>, SkinAI is designed with full transparency through Explainable AI. Users can clearly see which facial regions the algorithm relies on when generating its skin condition assessment.
                     </p>
                 </motion.div>
 
                 {/* --- Core Technologies --- */}
                 <motion.div variants={itemVariants} className="mb-16 sm:mb-24">
                     <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-6 md:mb-10">
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-medium text-zinc-900">Teknologi Inti</h3>
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-medium text-zinc-900">Core Technologies</h3>
                         <span className="text-[10px] md:text-xs text-zinc-400 font-light uppercase tracking-wider">System Components</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
                         {features.map((item, idx) => (
-                            <div 
-                                key={idx} 
+                            <div
+                                key={idx}
                                 className="group relative bg-zinc-50/80 rounded-2xl md:rounded-3xl border border-zinc-100 hover:border-zinc-300 transition-all duration-300 p-5 sm:p-6 md:p-8"
                             >
                                 <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl md:rounded-2xl flex items-center justify-center border border-zinc-100 shadow-sm mb-4 md:mb-5">
@@ -125,7 +125,7 @@ export default function AboutPage() {
                     <div className="text-center sm:text-left">
                         <p className="text-[10px] md:text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2 sm:mb-1.5">Developed By</p>
                         <h3 className="text-base sm:text-lg md:text-xl font-medium text-zinc-900">Setia Farel Muamar Kadhafi</h3>
-                        <p className="text-xs sm:text-sm text-zinc-500 font-light mt-1">Jurusan Informatika, Universitas Siliwangi</p>
+                        <p className="text-xs sm:text-sm text-zinc-500 font-light mt-1">Department of Informatics, Siliwangi University</p>
                     </div>
                     <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-zinc-900 flex items-center justify-center text-white shrink-0 shadow-md">
                         <Code className="w-5 h-5 md:w-6 md:h-6" />

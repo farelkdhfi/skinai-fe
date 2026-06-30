@@ -47,7 +47,7 @@ const HeroSection = ({ onStartClick }) => {
                     transition={{ duration: 1, delay: 0.4 }}
                     className="max-w-xs sm:max-w-xl mx-auto text-neutral-500 text-sm md:text-lg leading-relaxed px-2"
                 >
-                    Menggunakan MobileNetV2 dengan strategi patch-based untuk analisis tekstur mikro dan Smart Camera Guidance untuk standarisasi input real-time.
+                    Employs MobileNetV2 with a patch-based strategy for micro-texture analysis and Smart Camera Guidance to ensure real-time input standardization.
                 </motion.p>
 
                 {/* BUTTON */}
@@ -61,7 +61,7 @@ const HeroSection = ({ onStartClick }) => {
                         <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
                             <div className="relative h-full w-8 bg-white/20" />
                         </div>
-                        <span className="mr-2 text-sm md:text-base">Mulai Analisis</span>
+                        <span className="mr-2 text-sm md:text-base">Start Analysis</span>
                         <ArrowRight size={18} className='group-hover:translate-x-1 transition-transform' />
                     </button>
                 </motion.div>
