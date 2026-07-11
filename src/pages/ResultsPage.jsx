@@ -547,7 +547,7 @@ function PatchCard({ item, patch, heatmap, showHeatmap, onClick }) {
     return (
         <div
             onClick={() => onClick({ patch, heatmap, region: item.region })}
-            className="group relative bg-zinc-50 rounded-[1rem] sm:rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-100 hover:border-zinc-300 transition-all duration-300">
+            className="group relative bg-zinc-50 rounded-[1rem] sm:rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-100 hover:border-zinc-300 cursor-pointer transition-all duration-300">
             <div className="aspect-square relative bg-zinc-200">
                 {patch && (
                     <img src={patch} alt={item.region} className="w-full h-full object-cover absolute inset-0" />

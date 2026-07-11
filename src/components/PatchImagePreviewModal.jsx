@@ -20,11 +20,11 @@ export default function PatchImagePreviewModal ({ data, showHeatmap, onClose }) 
                         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-full max-w-4xl p-4 flex flex-col items-center pointer-events-none"
                     >
                         <div className="relative w-full aspect-square md:aspect-auto md:h-[75vh] bg-zinc-950 rounded-2xl md:rounded-[2rem] overflow-hidden pointer-events-auto shadow-2xl border border-zinc-800">
-                            {data.imageUrl || data.patch && (
+                            {(data.imageUrl || data.patch) && (
                                 <img src={data.imageUrl || data.patch} alt={data.region} className="w-full h-full object-contain absolute inset-0" />
                             )}
                             
-                            {data.heatmapUrl || data.heatmap && (
+                            {(data.heatmapUrl || data.heatmap) && (
                                 <div className={`absolute inset-0 transition-opacity duration-500 ${showHeatmap ? 'opacity-100' : 'opacity-0'}`}>
                                     <img src={data.heatmapUrl || data.heatmap } alt="Heatmap" className="w-full h-full object-contain" />
                                 </div>
