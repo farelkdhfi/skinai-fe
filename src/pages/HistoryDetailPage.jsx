@@ -13,6 +13,7 @@ import { DIAGNOSIS_COLORS, ROUTES, API_URL } from '../config';
 import Header from '../components/Header';
 import LoadingScreenAnalyze from '../components/LoadingScreenAnalyze';
 import IngredientDetailModal from '../components/IngredientDetailModal';
+import PatchImagePreviewModal from '../components/PatchImagePreviewModal';
 
 const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, isLoading }) => {
     return (
@@ -89,9 +90,11 @@ export default function HistoryDetailPage() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isDeleted, setIsDeleted] = useState(false);
 
+    const [selectedImagePatch, setSelectedImagePatch] = useState(null);
+
     // Mencegah scroll body saat modal terbuka
     useEffect(() => {
-        if (selectedIngredient) {
+        if (selectedIngredient || selectedImagePatch) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
@@ -99,7 +102,7 @@ export default function HistoryDetailPage() {
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [selectedIngredient]);
+    }, [selectedIngredient, selectedImagePatch]);
 
     const handleDelete = async () => {
         setIsDeleting(true);
@@ -352,6 +355,7 @@ export default function HistoryDetailPage() {
                                                 imageUrl={getImageUrl(patch.image_url)}
                                                 heatmapUrl={getImageUrl(patch.heatmap_image_url)}
                                                 showHeatmap={showHeatmap}
+                                                onClick={setSelectedImagePatch}
                                             />
                                         ))}
                                     </div>
@@ -369,11 +373,10 @@ export default function HistoryDetailPage() {
                                 </div>
                                 <button
                                     onClick={() => setShowHeatmap(!showHeatmap)}
-                                    className={`relative flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs font-medium rounded-full transition-all shadow-sm w-full sm:w-auto ${
-                                        showHeatmap 
-                                            ? 'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-md' 
-                                            : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50'
-                                    }`}
+                                    className={`relative flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs font-medium rounded-full transition-all shadow-sm w-full sm:w-auto ${showHeatmap
+                                        ? 'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-md'
+                                        : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50'
+                                        }`}
                                 >
                                     {showHeatmap ? <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                                     {showHeatmap ? 'Hide AI Heatmap' : 'Show AI Heatmap'}
@@ -458,12 +461,18 @@ export default function HistoryDetailPage() {
             {/* --- Render Modal Detail --- */}
             <AnimatePresence>
                 {selectedIngredient && (
-                    <IngredientDetailModal 
-                        ingredient={selectedIngredient} 
-                        onClose={() => setSelectedIngredient(null)} 
+                    <IngredientDetailModal
+                        ingredient={selectedIngredient}
+                        onClose={() => setSelectedIngredient(null)}
                     />
                 )}
             </AnimatePresence>
+
+            <PatchImagePreviewModal
+                data={selectedImagePatch}
+                showHeatmap={showHeatmap}
+                onClose={() => setSelectedImagePatch(null)}
+            />
 
             <ConfirmModal
                 isOpen={isDeleteModalOpen}
@@ -479,11 +488,13 @@ export default function HistoryDetailPage() {
 
 // --- Sub-components ---
 
-function PatchCard({ item, imageUrl, heatmapUrl, showHeatmap }) {
+function PatchCard({ item, imageUrl, heatmapUrl, showHeatmap, onClick }) {
     const colors = DIAGNOSIS_COLORS[item.predicted_class] || DIAGNOSIS_COLORS.Normal;
 
     return (
-        <div className="group relative bg-zinc-50 rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-100 hover:border-zinc-300 transition-all duration-300">
+        <div 
+        onClick={() => onClick({ imageUrl, heatmapUrl, region: item.region })}
+        className="group relative bg-zinc-50 rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-100 cursor-pointer hover:border-zinc-300 transition-all duration-300">
             <div className="aspect-square relative bg-zinc-200">
                 {/* Base Image */}
                 {imageUrl ? (
@@ -499,6 +510,12 @@ function PatchCard({ item, imageUrl, heatmapUrl, showHeatmap }) {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     </div>
                 )}
+
+                <div className="absolute inset-0 z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white">
+                        <Eye className="w-5 h-5" />
+                    </div>
+                </div>
 
                 {/* Floating Badge */}
                 <div className="absolute top-2.5 left-2.5 md:top-3.5 md:left-3.5 z-20">
@@ -543,13 +560,13 @@ function IngredientRow({ ingredient, type = 'primary', onViewDetails }) {
                     <p className="text-[11px] sm:text-xs md:text-sm text-zinc-500 font-light leading-relaxed line-clamp-2 mb-3 sm:mb-4">
                         {ingredient.what_it_does}
                     </p>
-                    
+
                     {/* Tombol View Details dengan AI Prompt */}
-                    <button 
+                    <button
                         onClick={() => onViewDetails(ingredient)}
                         className={`inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] md:text-xs font-semibold px-3.5 py-2 sm:px-4 sm:py-2 rounded-full transition-all w-max
-                            ${isPrimary 
-                                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:shadow-sm' 
+                            ${isPrimary
+                                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:shadow-sm'
                                 : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 hover:shadow-sm'
                             }`}
                     >

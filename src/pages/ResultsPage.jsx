@@ -14,6 +14,7 @@ import { DIAGNOSIS_COLORS, ROUTES } from '../config';
 import Header from '../components/Header';
 // Import komponen modal baru
 import IngredientDetailModal from '../components/IngredientDetailModal';
+import PatchImagePreviewModal from '../components/PatchImagePreviewModal';
 
 // --- Animation Variants ---
 const containerVariants = {
@@ -36,19 +37,19 @@ const itemVariants = {
 // Varian animasi intro yang sangat elegan, smooth, dan premium
 const introVariants = {
     initial: { opacity: 0, scale: 0.97, filter: "blur(12px)", y: 10 },
-    animate: { 
-        opacity: 1, 
-        scale: 1, 
-        filter: "blur(0px)", 
-        y: 0, 
+    animate: {
+        opacity: 1,
+        scale: 1,
+        filter: "blur(0px)",
+        y: 0,
         transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] } // Ultra smooth deceleration
     },
-    exit: { 
-        opacity: 0, 
-        scale: 1.03, 
-        filter: "blur(8px)", 
-        y: -10, 
-        transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
+    exit: {
+        opacity: 0,
+        scale: 1.03,
+        filter: "blur(8px)",
+        y: -10,
+        transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
     }
 };
 
@@ -58,7 +59,7 @@ export default function ResultsPage() {
     const { isAuthenticated } = useAuth();
     const [isSaved, setIsSaved] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    
+
     // State untuk toggle heatmap & Modal
     const [showHeatmap, setShowHeatmap] = useState(true);
     const [selectedIngredient, setSelectedIngredient] = useState(null);
@@ -68,6 +69,8 @@ export default function ResultsPage() {
     const [introComplete, setIntroComplete] = useState(false);
 
     const { user, session } = useAuth();
+
+    const [selectedImagePatch, setSelectedImagePatch] = useState(null);
 
     // Redirect if no results
     useEffect(() => {
@@ -79,7 +82,7 @@ export default function ResultsPage() {
     // Intro Sequence Effect - Durasi diperpanjang agar user bisa membaca teks makna
     useEffect(() => {
         if (!results) return;
-        
+
         const t1 = setTimeout(() => setIntroStage(2), 3500);
         const t2 = setTimeout(() => setIntroStage(3), 7000);
         const t3 = setTimeout(() => setIntroStage(4), 10500);
@@ -93,7 +96,7 @@ export default function ResultsPage() {
 
     // Mencegah scroll body saat modal terbuka ATAU intro belum selesai
     useEffect(() => {
-        if (selectedIngredient || !introComplete) {
+        if (selectedIngredient || !introComplete || selectedImagePatch) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
@@ -101,7 +104,7 @@ export default function ResultsPage() {
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [selectedIngredient, introComplete]);
+    }, [selectedIngredient, introComplete, selectedImagePatch]);
 
     if (!results) return null;
 
@@ -131,7 +134,7 @@ export default function ResultsPage() {
 
     return (
         <div className="min-h-screen bg-white text-zinc-950 pb-36 sm:pb-32 md:pb-24 relative">
-            
+
             {/* --- Elegant Intro Animation Overlay --- */}
             <AnimatePresence>
                 {!introComplete && (
@@ -153,7 +156,7 @@ export default function ResultsPage() {
                                     <div className="text-zinc-400 text-[9px] sm:text-[10px] font-medium tracking-[0.3em] uppercase mb-8">
                                         Clinical Analysis Complete
                                     </div>
-                                    
+
                                     <h2 className="text-5xl sm:text-6xl md:text-7xl font-light tracking-tight text-zinc-900 mb-6 capitalize leading-none">
                                         {diagnosis}
                                     </h2>
@@ -161,7 +164,7 @@ export default function ResultsPage() {
                                     <p className="text-zinc-500 text-xs sm:text-sm font-light leading-relaxed mb-10 px-4">
                                         Our deep learning architecture has processed your dermal topography with high certainty, identifying the predominant skin condition profile.
                                     </p>
-                                    
+
                                     <div className="flex flex-col items-center gap-2">
                                         <div className="text-zinc-400 text-[9px] sm:text-[10px] font-medium tracking-[0.2em] uppercase">
                                             Algorithmic Confidence
@@ -187,11 +190,11 @@ export default function ResultsPage() {
                                     </p>
                                     <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
                                         {results.predictions?.map((item, idx) => (
-                                            <motion.div 
-                                                key={idx} 
-                                                initial={{ opacity: 0, scale: 0.9, filter: "blur(5px)" }} 
-                                                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }} 
-                                                transition={{ delay: idx * 0.2, duration: 1, ease: [0.16, 1, 0.3, 1] }} 
+                                            <motion.div
+                                                key={idx}
+                                                initial={{ opacity: 0, scale: 0.9, filter: "blur(5px)" }}
+                                                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                                                transition={{ delay: idx * 0.2, duration: 1, ease: [0.16, 1, 0.3, 1] }}
                                                 className="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden border border-zinc-200/40 shadow-sm bg-zinc-50 relative"
                                             >
                                                 <img src={patches[item.region]} alt={item.region} className="w-full h-full object-cover" />
@@ -215,13 +218,13 @@ export default function ResultsPage() {
                                         Synthesizing regional anomalies into a unified structural map to identify overarching distribution patterns.
                                     </p>
                                     <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-[2rem] overflow-hidden border border-zinc-200/50 shadow-xl shadow-zinc-200/40 relative bg-zinc-50">
-                                        <motion.img 
+                                        <motion.img
                                             initial={{ scale: 1.05, filter: "contrast(0.9) grayscale(0.2)" }}
                                             animate={{ scale: 1, filter: "contrast(1) grayscale(0)" }}
                                             transition={{ duration: 3.5, ease: "easeOut" }}
-                                            src={results.cfcm_image || originalFullImage} 
-                                            alt="Full Facial View" 
-                                            className="w-full h-full object-cover absolute inset-0" 
+                                            src={results.cfcm_image || originalFullImage}
+                                            alt="Full Facial View"
+                                            className="w-full h-full object-cover absolute inset-0"
                                         />
                                     </div>
                                 </motion.div>
@@ -241,11 +244,11 @@ export default function ResultsPage() {
                                     </p>
                                     <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                                         {recommendations?.primary_ingredients?.slice(0, 5).map((ing, idx) => (
-                                            <motion.div 
-                                                key={idx} 
-                                                initial={{ opacity: 0, y: 15, filter: "blur(4px)" }} 
-                                                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} 
-                                                transition={{ delay: idx * 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }} 
+                                            <motion.div
+                                                key={idx}
+                                                initial={{ opacity: 0, y: 15, filter: "blur(4px)" }}
+                                                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                                                transition={{ delay: idx * 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                                                 className="px-6 py-2.5 sm:px-7 sm:py-3 bg-white border border-zinc-200/60 rounded-full text-zinc-700 text-xs sm:text-sm font-medium shadow-sm flex items-center gap-2.5"
                                             >
                                                 <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
@@ -334,10 +337,10 @@ export default function ResultsPage() {
                                         </div>
                                         <div className="relative bg-zinc-100 rounded-[1.5rem] sm:rounded-3xl md:rounded-[2.5rem] overflow-hidden border border-zinc-200 shadow-sm aspect-square flex items-center justify-center">
                                             {originalFullImage && (
-                                                <img 
-                                                    src={originalFullImage} 
-                                                    alt="Original Facial Map" 
-                                                    className="w-full h-full object-cover absolute inset-0" 
+                                                <img
+                                                    src={originalFullImage}
+                                                    alt="Original Facial Map"
+                                                    className="w-full h-full object-cover absolute inset-0"
                                                 />
                                             )}
                                             <img
@@ -375,6 +378,7 @@ export default function ResultsPage() {
                                                     patch={patches[item.region]}
                                                     heatmap={results.gradcam_heatmaps?.[item.region]}
                                                     showHeatmap={showHeatmap}
+                                                    onClick={setSelectedImagePatch}
                                                 />
                                             ))}
                                         </div>
@@ -392,11 +396,10 @@ export default function ResultsPage() {
                                     </div>
                                     <button
                                         onClick={() => setShowHeatmap(!showHeatmap)}
-                                        className={`relative flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs font-medium rounded-full transition-all shadow-sm w-full sm:w-auto ${
-                                            showHeatmap 
-                                                ? 'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-md' 
-                                                : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50'
-                                        }`}
+                                        className={`relative flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs font-medium rounded-full transition-all shadow-sm w-full sm:w-auto ${showHeatmap
+                                            ? 'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-md'
+                                            : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50'
+                                            }`}
                                     >
                                         {showHeatmap ? <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                                         {showHeatmap ? 'Hide AI Heatmap' : 'Show AI Heatmap'}
@@ -521,22 +524,30 @@ export default function ResultsPage() {
             {/* --- Render Modal Detail --- */}
             <AnimatePresence>
                 {selectedIngredient && (
-                    <IngredientDetailModal 
-                        ingredient={selectedIngredient} 
-                        onClose={() => setSelectedIngredient(null)} 
+                    <IngredientDetailModal
+                        ingredient={selectedIngredient}
+                        onClose={() => setSelectedIngredient(null)}
                     />
                 )}
             </AnimatePresence>
+
+            <PatchImagePreviewModal
+                data={selectedImagePatch}
+                showHeatmap={showHeatmap}
+                onClose={() => setSelectedImagePatch(null)}
+            />
         </div>
     );
 }
 
 // --- Sub-components ---
 
-function PatchCard({ item, patch, heatmap, showHeatmap }) {
+function PatchCard({ item, patch, heatmap, showHeatmap, onClick }) {
     const colors = DIAGNOSIS_COLORS[item.predicted_class] || DIAGNOSIS_COLORS.Normal;
     return (
-        <div className="group relative bg-zinc-50 rounded-[1rem] sm:rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-100 hover:border-zinc-300 transition-all duration-300">
+        <div
+            onClick={() => onClick({ patch, heatmap, region: item.region })}
+            className="group relative bg-zinc-50 rounded-[1rem] sm:rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-100 hover:border-zinc-300 transition-all duration-300">
             <div className="aspect-square relative bg-zinc-200">
                 {patch && (
                     <img src={patch} alt={item.region} className="w-full h-full object-cover absolute inset-0" />
@@ -547,6 +558,11 @@ function PatchCard({ item, patch, heatmap, showHeatmap }) {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     </div>
                 )}
+                <div className="absolute inset-0 z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white">
+                        <Eye className="w-5 h-5" />
+                    </div>
+                </div>
                 <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 md:top-3.5 md:left-3.5 z-20">
                     <span className={`text-[8px] sm:text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 md:px-2.5 md:py-1.5 rounded-full bg-white/90 backdrop-blur shadow-sm ${colors.text}`}>
                         {item.predicted_class}
@@ -611,13 +627,13 @@ function IngredientRow({ ingredient, type = 'primary', onViewDetails }) {
                     <p className="text-[11px] sm:text-xs md:text-sm text-zinc-500 font-light leading-relaxed line-clamp-2 mb-3 sm:mb-4">
                         {ingredient.what_it_does}
                     </p>
-                    
+
                     {/* Perubahan Tombol View Details jadi lebih menonjolkan AI */}
-                    <button 
+                    <button
                         onClick={() => onViewDetails(ingredient)}
                         className={`inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] md:text-xs font-semibold px-3.5 py-2 sm:px-4 sm:py-2 rounded-full transition-all w-max
-                            ${isPrimary 
-                                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:shadow-sm' 
+                            ${isPrimary
+                                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:shadow-sm'
                                 : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 hover:shadow-sm'
                             }`}
                     >
