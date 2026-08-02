@@ -75,7 +75,8 @@ export const ROUTES = {
     LIVECAM: '/analyze/live',
     UPLOAD: '/analyze/upload',
 
-    HISTORY_LIST: '/history-list',
+    HISTORY: '/history',
+    HISTORY_DETAIL: '/history/:historyId',
 
     INTRO_WEB: '/skinai-introduction',
 

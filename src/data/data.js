@@ -5,9 +5,9 @@ import ingredients3 from '../assets/ingredients/3.jpg'
 import ingredients4 from '../assets/ingredients/4.jpg'
 
 // Patch Assets
-import patch1 from '../assets/patch/1.jpg';
-import patch2 from '../assets/patch/2.jpg';
-import patch3 from '../assets/patch/3.jpg';
+import patch1 from '../assets/patches/1.jpg';
+import patch2 from '../assets/patches/2.jpg';
+import patch3 from '../assets/patches/3.jpg';
 
 // Logo Assets
 import LogoJs from '../assets/logo/logo_js.png';
