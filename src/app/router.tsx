@@ -14,6 +14,7 @@ import Analyze from "../features/analysis/pages/Analyze";
 import Results from "../features/results/page/Results";
 import ProtectedRoute from "../routes/ProtectedRoute";
 import Success from "../features/auth/pages/Success";
+import AuthCallback from "../features/auth/pages/AuthCallback";
 
 export const router = createBrowserRouter([
     {
@@ -39,6 +40,10 @@ export const router = createBrowserRouter([
             {
                 path: ROUTES.SUCCESS,
                 element: <Success />
+            },
+            {
+                path: ROUTES.AUTH_CALLBACK,
+                element: <AuthCallback />
             },
             {
                 element: <ProtectedRoute />,

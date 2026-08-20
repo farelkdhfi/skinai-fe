@@ -5,8 +5,8 @@ import {
     ArrowLeft, Sun, ScanFace, CheckCircle2, 
     Layers, BookOpen, AlertCircle, Sparkles, XCircle, Camera
 } from 'lucide-react';
-import { ROUTES } from '../../../config'; // Adjust import path
-import Header from '../../../components/Header'; // Adjust import path
+import { ROUTES } from '../../../config';
+import Header from '../../../components/Header';
 
 // --- Animation Variants ---
 const containerVariants = {

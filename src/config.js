@@ -82,5 +82,7 @@ export const ROUTES = {
 
     GUIDANCE: '/guidance',
 
+    AUTH_CALLBACK: '/auth/callback',
+
     SUCCESS: '/success'
 };

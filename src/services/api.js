@@ -4,7 +4,8 @@
  */
 
 import axios from 'axios';
-import { API_URL } from '../config';
+import { API_URL, ROUTES } from '../config';
+import { supabase } from './supabaseClient';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -146,6 +147,16 @@ export const authAPI = {
             localStorage.setItem('refresh_token', response.data.refresh_token);
         }
         return response;
+    },
+
+    loginWithGoogle: async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}${ROUTES.AUTH_CALLBACK}`,
+            },
+        });
+        if (error) throw error;
     },
 };
 
